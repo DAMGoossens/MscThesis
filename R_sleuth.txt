@@ -1,0 +1,58 @@
+#source("http://bioconductor.org/biocLite.R")
+#biocLite("devtools")    # only if devtools not yet installed
+#biocLite("pachterlab/sleuth")
+#biocLite(biomaRt)
+
+library(devtools)
+library(sleuth)
+library(biomaRt)
+
+base_dir <- "/mnt/scratch/gooss032/kallisto"
+sample_id <- dir(file.path(base_dir,"results"))
+sample_id                             #geeft alle samples weer die geimporteerd zijn, en als het goed is ook de index
+
+kal_dirs <- sapply(sample_id, function(id) file.path(base_dir, "results", id, "kallisto"))
+kal_dirs
+
+s2c <- read.table(file.path(base_dir,"run_info.txt"), header=TRUE, stringsAsFactors=FALSE)
+s2c <- dplyr::select(s2c, sample = run_accession, condition)
+s2c
+
+#checking if samples correspond correctly to the runs
+s2c <- dplyr::mutate(s2c, path = kal_dirs)  #path kan niet veranderd worden
+print(s2c)       #en controleer of alles klopt!
+
+#constructing the sleuth object
+so <- sleuth_prep(s2c, ~ condition)       #prepping data Waarschuwing: duurt lang
+so <- sleuth_fit(so)                    #fitting the model
+so <- sleuth_fit(so, ~1, 'reduced')     #fitting the reduced model
+so <- sleuth_lrt(so, 'reduced', 'full')     #test the model   (likelihood ratio test)
+models(so)
+
+so <- sleuth_wt(so, 'conditionBAY_HT')
+so <- sleuth_wt(so, 'conditionBAY_LP')
+so <- sleuth_wt(so, 'conditionBAY_ST')
+so <- sleuth_wt(so, 'conditionBS_HL')
+so <- sleuth_wt(so, 'conditionBS_HT')
+
+
+so <- sleuth_wt(so, 'conditionTOMATO')  #wald test
+
+#annotating the genes (biomaRt)
+#m <- useMart("plants_mart", host = "plants.ensembl.org")
+#d <- useDataset("athaliana_eg_gene",mart = m)
+#genes <- c("AT1G06090", "AT1G06100","AT1G06110", "AT1G06120","AT1G06130", "AT1G06200")
+#attributes = c("start_position","end_position","description")
+#filters = "tair_locus"   #later veranderen naar target_id/Chromosome name
+#query <- getBM(attributes = as.character(c(filters, attributes)), filters = as.character(filters), values = as.character(genes), mart = d)
+#colnames(query) <- c(filters, attributes)
+#genes <- dplyr::data_frame(as.character(genes))
+#colnames(genes) <- as.character(filters)
+#tbl_biomart <- merge(query, genes, by = filters, incomparables = NA)
+#colnames(tbl_biomart)[colnames(tbl_biomart)=="tair_locus"] <- "target_id"  #veranderen kolom naam
+#View(tbl_biomart) of tbl_biomart
+
+#so <- sleuth_prep(s2c, ~condition, target_mapping = tbl_biomart)
+
+sleuth_live(so)                         #opens a shiny webapp. 
+
