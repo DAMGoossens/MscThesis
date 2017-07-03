@@ -7,8 +7,8 @@ library(devtools)
 library(sleuth)
 library(biomaRt)
 
-base_dir <- "/mnt/scratch/gooss032/kallisto"
-sample_id <- dir(file.path(base_dir,"results"))
+base_dir <- "/mnt/scratch/gooss032/"
+sample_id <- dir(file.path(base_dir,"o_kallisto"))
 sample_id                             #geeft alle samples weer die geimporteerd zijn, en als het goed is ook de index
 
 kal_dirs <- sapply(sample_id, function(id) file.path(base_dir, "results", id, "kallisto"))
