@@ -9,7 +9,7 @@ library(dplyr)
 
 
 getwd()
-#setwd("/mnt/scratch/gooss032/stringtie/output")
+#setwd("/mnt/scratch/gooss032/o_stringtie")
 
 #importeren
 pheno_data = read.csv("ballgown/samplesR.csv", header=TRUE)
@@ -18,11 +18,7 @@ bg = ballgown(dataDir = "ballgown", samplePattern="1657", pData=pheno_data)
 
 #testing
 diffEx_transcripts = stattest(bg, feature="transcript", covariate="condition", getFC=TRUE, meas="FPKM")
-
 genes.fpkm = gexpr(bg)
-
 genes.fpkm.log = log2(genes.fpkm+1)
-
 transcripts.fpkm = texpr(bg)
-
 transcripts.fpkm.log= log2(transcripts.fpkm+1)
