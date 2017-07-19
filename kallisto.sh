@@ -6,8 +6,6 @@ progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_A -b 100 --singl
 progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_B -b 100 --single -l 180 -s 20 input/1657_B_run263.fastq.gz
 progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_C -b 100 --single -l 180 -s 20 input/1657_C_merged.fastq.gz
 
-##input/Fastqfiles
-
 #LP
 progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_G -b 100 --single -l 180 -s 20 input/1657_G_run263.fastq.gz
 progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_H -b 100 --single -l 180 -s 20 input/1657_H_run263.fastq.gz
