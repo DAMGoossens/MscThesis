@@ -25,7 +25,7 @@ bg = ballgown(dataDir = "ballgown", samplePattern="1657", pData=pheno_data)
 
 #testing statistical significance
 bg_filt = subset(bg,"rowVars(texpr(bg)) >1",genomesubset=TRUE)
-results_transcripts = stattest(bg_filt, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE)
+results_transcripts = stattest(bg_filt, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE)     #geld alleen maar voor verschil tussen twee groepen. 
 results_genes = stattest(bg_filt, feature="gene", meas="FPKM", covariate="condition", getFC=TRUE)
 results_transcripts = data.frame(geneNames=ballgown:geneNames(bg_filt),geneIDs=ballgown:geneIDs(bg_filt),results_transcripts)
 
@@ -52,6 +52,8 @@ heatmap(fpkm.cor)
 
 df.fpkm = as.data.frame(t(fpkm))
 rownames(df.fpkm) =gsub("FPKM.","",rownames(df.fpkm))
+
+#fpkm[is.na(fpkm)]<-0
 
 df.fpkm$condition = pheno_data$condition:autoplot(prcomp(t(fpkm)), data=df.fpkm, colour='condition', label=TRUE, label.vjust=2, label.size=3)
 
