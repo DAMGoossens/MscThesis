@@ -25,9 +25,9 @@ bg = ballgown(dataDir = "ballgown", samplePattern="1657", pData=pheno_data)
 
 #testing statistical significance
 #bg_filt = subset(bg,"rowVars(texpr(bg)) >1",genomesubset=TRUE)
-results_transcripts = stattest(bg_filt, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE)     #geld alleen maar voor verschil tussen twee groepen. 
-results_genes = stattest(bg_filt, feature="gene", meas="FPKM", covariate="condition", getFC=TRUE)
-results_transcripts = data.frame(geneNames=ballgown:geneNames(bg_filt),geneIDs=ballgown:geneIDs(bg_filt),results_transcripts)
+results_transcripts = stattest(bg_filt, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadjust=FALSE)     #geld alleen maar voor verschil tussen twee groepen. 
+results_genes = stattest(bg_filt, feature="gene", meas="FPKM", covariate="condition", getFC=TRUE, libadjust=FALSE)
+results_transcripts = data.frame(geneNames=ballgown:geneNames(bg),geneIDs=ballgown:geneIDs(bg),results_transcripts)
 
 #sorteren op p-value en q-value
 results_transcripts = arrange(results_transcripts,pval)
@@ -48,7 +48,7 @@ plot(-log10(pval)~log2(fc),data=results_genes,main="Volcano plot")
 
 fpkm.cor = cor(fpkm)
 rownames(fpkm.cor) = gsub("FPKM.","",rownames(fpkm.cor))
-heatmap(fpkm.cor)
+heatmap(fpkm.cor, scale = c("none"))  #scale is either row (default), symm (false) or none
 
 df.fpkm = as.data.frame(t(fpkm))
 rownames(df.fpkm) =gsub("FPKM.","",rownames(df.fpkm))
