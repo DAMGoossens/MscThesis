@@ -14,7 +14,7 @@ setwd("/mnt/scratch/gooss032/o_stringtie")
 
 #importeren
 pheno_data = read.csv("ballgown/samplesR.csv", header=TRUE)
-bg = ballgown(dataDir = "ballgown", samplePattern="1657", pData=pheno_data)
+bg = ballgown(dataDir = "ballgown", samplePattern="BAY_", pData=pheno_data)
 
 #testing
 #diffEx_transcripts = stattest(bg, feature="transcript", covariate="condition", getFC=TRUE, meas="FPKM")
@@ -25,9 +25,9 @@ bg = ballgown(dataDir = "ballgown", samplePattern="1657", pData=pheno_data)
 
 #testing statistical significance
 #bg_filt = subset(bg,"rowVars(texpr(bg)) >1",genomesubset=TRUE)
-results_transcripts = stattest(bg_filt, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadjust=FALSE)     #geld alleen maar voor verschil tussen twee groepen. 
-results_genes = stattest(bg_filt, feature="gene", meas="FPKM", covariate="condition", getFC=TRUE, libadjust=FALSE)
-results_transcripts = data.frame(geneNames=ballgown:geneNames(bg),geneIDs=ballgown:geneIDs(bg),results_transcripts)
+results_transcripts = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE)     #geld alleen maar voor verschil tussen twee groepen. 
+results_genes = stattest(bg, feature="gene", meas="FPKM", covariate="condition", getFC=TRUE)
+results_transcripts = data.frame(geneNames=ballgown:geneNames(bg),geneIDs=ballgown:geneIDs(bg),results_transcripts)   #hier komen NA's
 
 #sorteren op p-value en q-value
 results_transcripts = arrange(results_transcripts,pval)
