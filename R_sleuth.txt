@@ -1,7 +1,7 @@
 #source("http://bioconductor.org/biocLite.R")
 #biocLite("devtools")    # only if devtools not yet installed
 #biocLite("pachterlab/sleuth")
-#biocLite(biomaRt)
+#biocLite("biomaRt")
 
 library(devtools)
 library(sleuth)
@@ -20,7 +20,7 @@ s2c
 
 #checking if samples correspond correctly to the runs
 s2c <- dplyr::mutate(s2c, path = kal_dirs)  #path kan niet veranderd worden
-print(s2c)       #en controleer of alles klopt!
+s2c       #en controleer of alles klopt!
 
 #constructing the sleuth object
 so <- sleuth_prep(s2c, ~ condition)       #prepping data Waarschuwing: duurt lang
