@@ -35,8 +35,11 @@ so <- sleuth_wt(so, 'conditionBAY_ST')
 so <- sleuth_wt(so, 'conditionBS_HL')
 so <- sleuth_wt(so, 'conditionBS_HT')
 
+#so <- sleuth_wt(so, 'conditionTOMATO')  #wald test
 
-so <- sleuth_wt(so, 'conditionTOMATO')  #wald test
+sleuth_live(so)       
+
+#####################################################################
 
 #annotating the genes (biomaRt)
 #m <- useMart("plants_mart", host = "plants.ensembl.org")
