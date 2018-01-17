@@ -38,24 +38,3 @@ so <- sleuth_wt(so, 'conditionBS_HT')
 #so <- sleuth_wt(so, 'conditionTOMATO')  #wald test
 
 sleuth_live(so)       
-
-#####################################################################
-
-#annotating the genes (biomaRt)
-#m <- useMart("plants_mart", host = "plants.ensembl.org")
-#d <- useDataset("athaliana_eg_gene",mart = m)
-#genes <- c("AT1G06090", "AT1G06100","AT1G06110", "AT1G06120","AT1G06130", "AT1G06200")
-#attributes = c("start_position","end_position","description")
-#filters = "tair_locus"   #later veranderen naar target_id/Chromosome name
-#query <- getBM(attributes = as.character(c(filters, attributes)), filters = as.character(filters), values = as.character(genes), mart = d)
-#colnames(query) <- c(filters, attributes)
-#genes <- dplyr::data_frame(as.character(genes))
-#colnames(genes) <- as.character(filters)
-#tbl_biomart <- merge(query, genes, by = filters, incomparables = NA)
-#colnames(tbl_biomart)[colnames(tbl_biomart)=="tair_locus"] <- "target_id"  #veranderen kolom naam
-#View(tbl_biomart) of tbl_biomart
-
-#so <- sleuth_prep(s2c, ~condition, target_mapping = tbl_biomart)
-
-sleuth_live(so)                         #opens a shiny webapp. 
-
