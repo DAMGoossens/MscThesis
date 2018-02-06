@@ -16,5 +16,5 @@ p<-p + theme(axis.ticks=element_blank())
 p<-p + theme(axis.text=element_blank())
 p<-p + theme(panel.border=element_blank())
 
-p<-p + xlab("Transcripts") + ylab("")
+p<-p + xlab("Stringtie vs Kallisto") + ylab("")
 p
