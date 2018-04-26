@@ -1,0 +1,74 @@
+#Msc Thesis Dymphy
+#This script entails the third pipeline. This is not a script that can be completly executed from unix. 
+
+###################################################################################################
+# Running Stringtie on Unix
+###################################################################################################
+
+#ST
+progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_A -b 100 --single -l 180 -s 20 input/1657_A_run263.fastq.gz
+progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_B -b 100 --single -l 180 -s 20 input/1657_B_run263.fastq.gz
+progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_C -b 100 --single -l 180 -s 20 input/1657_C_merged.fastq.gz
+
+#LP
+progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_G -b 100 --single -l 180 -s 20 input/1657_G_run263.fastq.gz
+progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_H -b 100 --single -l 180 -s 20 input/1657_H_run263.fastq.gz
+progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_I -b 100 --single -l 180 -s 20 input/1657_I_merged.fastq.gz
+
+#HT
+progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_M -b 100 --single -l 180 -s 20 input/1657_M_merged.fastq.gz
+progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_N -b 100 --single -l 180 -s 20 input/1657_N_run265.fastq.gz
+progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_O -b 100 --single -l 180 -s 20 input/1657_O_run265.fastq.gz
+
+#HL
+progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_S -b 100 --single -l 180 -s 20 input/1657_S_run265.fastq.gz
+progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_T -b 100 --single -l 180 -s 20 input/1657_T_merged.fastq.gz
+progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_U -b 100 --single -l 180 -s 20 input/1657_U_run265.fastq.gz
+
+
+###################################################################################################
+# Running Sleuth in R
+###################################################################################################
+##Installing and preparing libraries
+#source("http://bioconductor.org/biocLite.R")
+#biocLite("devtools") 
+#biocLite("pachterlab/sleuth")
+#biocLite("biomaRt")
+
+#Calling libraries
+library(devtools)
+library(sleuth)
+library(biomaRt)
+
+#Reading in the data
+base_dir <- "/mnt/scratch/gooss032"
+sample_id <- dir(file.path(base_dir,"o_kallisto"))
+sample_id                      
+kal_dirs <- sapply(sample_id, function(id) file.path(base_dir, "o_kallisto", id))
+kal_dirs
+s2c <- read.table("run_info.txt", header=TRUE, stringsAsFactors=FALSE)
+s2c <- dplyr::select(s2c, sample = sample, condition)
+s2c
+
+#Checking if samples correspond correctly to the runs
+s2c <- dplyr::mutate(s2c, path = kal_dirs) 
+s2c      						#Don't forget to check if everything corresponds correctly
+
+#Constructing the sleuth object
+so <- sleuth_prep(s2c, ~ condition)                     #prepping the data (might take long)
+so <- sleuth_fit(so)                                    #fitting the model
+so <- sleuth_fit(so, ~1, 'reduced')                     #fitting the reduced model
+
+#Likelihood ratio test
+so <- sleuth_lrt(so, 'reduced', 'full')     #test the model   (likelihood ratio test)
+models(so)
+
+#Wald test
+so <- sleuth_wt(so, 'conditionHT')
+#so <- sleuth_wt(so, 'conditionLP')
+so <- sleuth_wt(so, 'conditionST')
+#so <- sleuth_wt(so, 'conditionHL')
+#so <- sleuth_wt(so, 'conditionHT')
+
+#Creating a shiny webpage with all of the results
+sleuth_live(so) 
