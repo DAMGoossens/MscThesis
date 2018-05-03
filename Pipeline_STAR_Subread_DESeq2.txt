@@ -1,0 +1,84 @@
+#Msc Thesis Dymphy
+#This script entails the second pipeline. This is not a script that can be completly executed from unix. 
+
+###################################################################################################
+# Running STAR on Unix
+###################################################################################################
+#Generating genome (.../o_STAR/genome)
+../progs/STAR-2.5.2b/bin/Linux_x86_64/STAR --runMode genomeGenerate --genomeDir ../input --genomeFastaFiles ../input/Arabidopsis_thaliana.TAIR10.29.dna.genome.fa --sjdbGTFfile ../../Arab_zCHR.gtf
+
+#Mapping reads (o_STAR)
+progs/STAR-2.5.2b/bin/Linux_x86_64/STAR --genomeDir input --readFilesIn input/1657_A_run263.fastq.gz --runThreadN 2 --sjdbGTFfile ../Arab_zCHR.gtf --outFileNamePrefix /1657_A --readFilesCommand zcat
+
+###################################################################################################
+# Running DESeq2 in R
+###################################################################################################
+library( "GenomicFeatures" )
+library(DESeq2)
+library( "GenomicAlignments" )
+library( "Rsamtools" )
+
+setwd("/mnt/scratch/gooss032")
+
+hse <- makeTxDbFromGFF("Araport11_GFF3_genes_transposons.201606.gtf", format="gtf")
+exonsByGene <- exonsBy(hse, by="gene")
+
+#Reading in bam files
+fls <- list.files( "input/", pattern="_sorted.bam$", full=TRUE )
+bamLst <- BamFileList( fls, yieldSize=100000 )
+
+#Creating a summerized experiment object
+se <- summarizeOverlaps( exonsByGene, bamLst, mode="Union", singleEnd=FALSE, ignore.strand=TRUE, fragments=TRUE )
+
+#Checking se
+se
+head(assay(se))
+colData(se)
+
+#Prepping se for DEG analysis
+sampleInfo <- read.csv("input/sampleinfo.csv")     
+head(sampleInfo)
+head(colnames(se))
+sampleInfo <- DataFrame(sampleInfo)
+seIdx <- match(colnames(se), sampleInfo$run)
+head( cbind( colData(se)[ , 1:3 ], sampleInfo[ seIdx, ] ) )
+colData(se) <- cbind( colData(se), sampleInfo[ seIdx, ] )
+
+ddsFull <- DESeqDataSet( se, design = ~ treatment )
+
+as.data.frame( colData( ddsFull )[ ,c("run","treatment") ] )
+ddsCollapsed <- collapseReplicates( ddsFull, groupby = ddsFull$treatment, run = ddsFull$run )
+head( as.data.frame( colData(ddsCollapsed)[ ,c("run","runsCollapsed") ] ), 12 )
+
+#Setting the control
+dds <-ddsCollapsed
+dds$treatment <- relevel(dds$treatment, "ST")
+as.data.frame(colData(dds))
+
+#Normalizing and plotting dds object
+rld = rlog(dds)
+plot(density(assay(dds)[,1]), main="counts")
+plot(density(assay(rld)[,1]), main="log counts")
+
+#Creating and plotting (euclidian) distance
+dists = dist(t(assay(rld)))
+plot(hclust(dists))
+
+#Estimate dispersion values
+dds = estimateDispersions(dds)
+plotDispEsts(dds)
+
+#Calling DESeq function for analysis
+dds <- DESeq(dds)                                             #gives LP vs. ST
+
+#Select preferred treatment variables for testing and show results
+res <- results( dds, contrast = c("treatment", "HT", "ST") )
+res <- results(dds)
+res
+mcols(res, use.names=TRUE)
+
+#Set NA's of padj to 1
+res$padj = ifelse(is.na(res$padj), 1, res$padj)
+
+#MA plot
+plotMA( res, ylim = c(-1, 1) )
