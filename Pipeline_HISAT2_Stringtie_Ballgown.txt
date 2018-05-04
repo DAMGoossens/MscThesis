@@ -146,7 +146,7 @@ setwd("/mnt/scratch/gooss032/o_stringtie")
 
 #Import data
 pheno_data = read.csv("ballgown/samplesR.csv", header=TRUE)
-bg = ballgown(dataDir = "ballgown", samplePattern="BAY_", pData=pheno_data)
+bg = ballgown(dataDir = "ballgown", samplePattern="1657_", pData=pheno_data)
 
 #Get expression levels of gene and transcript level
 head(gexpr(bg), 2)
