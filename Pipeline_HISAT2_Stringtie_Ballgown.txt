@@ -168,8 +168,8 @@ results_transcripts = data.frame(geneNames=ballgown:geneNames(bg),geneIDs=ballgo
 #Sort on p- and q- value and print the list to files
 results_transcripts = arrange(results_transcripts,pval)
 results_genes = arrange(results_genes,pval)
-write.csv(results_transcripts,"stringtie_transcript_results.csv",row.names=FALSE)
-write.csv(results_genes,"stringtie_genes_results.csv",row.names=FALSE)
+write.csv(results_transcripts,"stringtie_transcript_results.csv",row.names=TRUE)
+write.csv(results_genes,"stringtie_genes_results.csv",row.names=TRUE)
 subset(results_transcripts,results_transcripts$qval<0.05)
 subset(results_genes,results_genes$qval<0.05)
 
