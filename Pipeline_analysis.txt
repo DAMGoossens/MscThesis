@@ -1,0 +1,32 @@
+#Msc Thesis Dymphy Goossens
+#This is the pipeline for analysis done in R
+
+###################################################################################################
+
+# Loading libraries and preparing datasets
+###################################################################################################
+
+setwd("/mnt/scratch/gooss032/o_analysis")
+
+stringtie <- read.csv("stringtie_STHT.csv")
+stringtie$X <- NULL
+stringtie$transcript <- substr(stringtie$transcript, 0, 9)
+kallisto <- read.csv("kallisto_STHT.csv")
+kallisto$X <- NULL
+kallisto$target_id <- substr(kallisto$target_id, 0, 9)
+star <- read.csv("STAR_transcript_resultsSTHT.csv")
+
+#creating one master dataframe with all values
+string_star_kal <- merge(stringtie,star, by.x="transcript", by.y="id")
+string_star_kal <- merge(string_star_kal, kallisto, by.x="transcript", by.y="target_id")
+
+###################################################################################################
+
+# STEP A: Difference between methods (ST-HT comparison)
+###################################################################################################
+# Correlation based on pvalue
+#cor(x,y=NULL, method = c("pearson", "kendall", "spearman"))
+si_k_qval <- data.frame("si_qval" = string_star_kal$si_qval, "k_qval" = string_star_kal$k_qval)
+si_k_qval <- data.matrix(si_k_qval)
+si_k_pcor <- cor(si_k_qval, method = c("pearson"))
+
