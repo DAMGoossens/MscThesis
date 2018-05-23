@@ -1,4 +1,4 @@
-#Msc Thesis Dymphy
+#Msc Thesis Dymphy Goossens
 #This script entails the third pipeline. This is not a script that can be completly executed from unix. 
 
 ###################################################################################################
@@ -33,12 +33,10 @@ progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_U -b 100 --singl
 #source("http://bioconductor.org/biocLite.R")
 #biocLite("devtools") 
 #biocLite("pachterlab/sleuth")
-#biocLite("biomaRt")
 
 #Calling libraries
 library(devtools)
 library(sleuth)
-library(biomaRt)
 
 #Reading in the data
 base_dir <- "/mnt/scratch/gooss032"
@@ -52,23 +50,31 @@ s2c
 
 #Checking if samples correspond correctly to the runs
 s2c <- dplyr::mutate(s2c, path = kal_dirs) 
-s2c      						#Don't forget to check if everything corresponds correctly
+s2c = s2c[grep("HT|ST",s2c$sample),]
+s2c      						#Don't forget to check if everything corresponds correctly 						#Don't forget to check if everything corresponds correctly
+
+t2g = read.csv("gene_code_id.csv",header=TRUE,stringsAsFactors=FALSE)
+colnames(t2g)  = c("target_id","gene_id")
 
 #Constructing the sleuth object
-so <- sleuth_prep(s2c, ~ condition)                     #prepping the data (might take long)
+#transformation_function = function(x) log2(x + 0.5)
+so <- sleuth_prep(s2c, ~ condition, target_mapping = t2g, aggregation_column = 'gene_id')  #prepping the data (might take long)
 so <- sleuth_fit(so)                                    #fitting the model
 so <- sleuth_fit(so, ~1, 'reduced')                     #fitting the reduced model
 
 #Likelihood ratio test
-so <- sleuth_lrt(so, 'reduced', 'full')     #test the model   (likelihood ratio test)
-models(so)
+#so <- sleuth_lrt(so, 'reduced', 'full')     #test the model   (likelihood ratio test)
+#models(so)
 
 #Wald test
-so <- sleuth_wt(so, 'conditionHT')
+#so <- sleuth_wt(so, 'conditionHT')
 #so <- sleuth_wt(so, 'conditionLP')
 so <- sleuth_wt(so, 'conditionST')
 #so <- sleuth_wt(so, 'conditionHL')
 #so <- sleuth_wt(so, 'conditionHT')
 
 #Creating a shiny webpage with all of the results
-sleuth_live(so) 
+#sleuth_live(so) 
+
+results_table <- sleuth_results(so, 'conditionST', test_type = 'wt')
+write.csv(results_table, "kallisto_STHT_genes.csv", row.names=TRUE)
