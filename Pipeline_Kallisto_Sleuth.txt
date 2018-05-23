@@ -2,7 +2,7 @@
 #This script entails the third pipeline. This is not a script that can be completly executed from unix. 
 
 ###################################################################################################
-# Running Stringtie on Unix
+# Running Kallisto on Unix
 ###################################################################################################
 
 #ST
