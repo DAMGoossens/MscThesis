@@ -146,6 +146,8 @@ library(ggfortify)
 library(ggplot2)
 library(cowplot)
 
+#REALLY NEEDED?: ballgown, plyr
+
 getwd()
 setwd("/mnt/scratch/gooss032/o_stringtie")
 
@@ -175,56 +177,3 @@ results_transcripts = arrange(results_transcripts,pval)
 results_genes = arrange(results_genes,pval)
 write.csv(results_transcripts,"stringtie_transcript_results.csv",row.names=FALSE)
 write.csv(results_genes,"stringtie_genes_results.csv",row.names=FALSE)
-subset(results_transcripts,results_transcripts$qval<0.05)
-subset(results_genes,results_genes$qval<0.05)
-
-##Visualization of fpkm in boxplot, volcano plot, heatmap and PCA
-#Boxplot
-tropical=c('darkorange', 'dodgerblue', 'hotpink', 'limegreen', 'yellow')
-palette(tropical)
-fpkm = texpr(bg,meas="FPKM")
-fpkm=log2(fpkm+1)
-boxplot(fpkm,col=as.numeric(pheno_data$condition), las=2, ylab='log2(FPKM+1)')
-
-#Volcano plot
-plotMeans('AT1G52740', bg_filt,groupvar="condition",legend=FALSE)
-plot(-log10(pval)~log2(fc),data=results_genes,main="Volcano plot")
-
-#Heatmap
-fpkm.cor = cor(fpkm)
-rownames(fpkm.cor) = gsub("FPKM.","",rownames(fpkm.cor))
-heatmap(fpkm.cor, scale = c("none"))  #scale is either row (default), symm (false) or none
-
-df.fpkm = as.data.frame(t(fpkm))
-rownames(df.fpkm) =gsub("FPKM.","",rownames(df.fpkm))
-fpkm[is.na(fpkm)]<-0
-
-#PCA
-fpkm = log2(gexpr(bg)+1)
-df.fpkm = as.data.frame(t(fpkm))
-rownames(df.fpkm) =gsub("FPKM.","",rownames(df.fpkm))
-df.fpkm$condition =  pheno_data$condition
-autoplot(prcomp(t(fpkm)), data=df.fpkm, colour='condition', label=TRUE,label.vjust=2,label.size=3)
-
-#Method 2 - Combining transcript and gene expression
-#Test on transcripts
-results_transcripts <- stattest(bg_filt, feature="transcript", covariate="condition", getFC=TRUE, meas="FPKM")
-class(results_transcripts)
-dim(results_transcripts)
-head(results_transcripts)
-table(results_transcripts$qval < 0.05)
-
-#Test on genes
-results_genes <- stattest(bg_filt, feature="gene", covariate="condition", getFC=TRUE, meas="FPKM")
-class(results_genes)
-dim(results_genes)
-table(results_genes$qval<0.05)
-results_transcripts <- data.frame(geneNames = geneNames(bg_filt), geneIDs = geneIDs(bg_filt), results_transcripts)                         results_transcripts)
-results_transcripts %>% filter(qval < 0.05)
-
-#Create a MA plot
-results_transcripts$mean <- rowMeans(texpr(bg_filt))
-ggplot(results_transcripts, aes(log2(mean), log2(fc), colour = qval<0.05)) + scale_color_manual(values=c("#999999", "#FF0000")) + geom_point() + geom_hline(yintercept=0)
-
-
-
