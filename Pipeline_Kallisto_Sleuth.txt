@@ -4,6 +4,9 @@
 ###################################################################################################
 # Running Kallisto on Unix
 ###################################################################################################
+#Creating an index
+progs/kallisto/kallisto index -i Ref_Kal.idx input/Arabidopsis_thaliana.TAIR10.cds.all.fa
+
 
 #ST
 progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_A -b 100 --single -l 180 -s 20 input/1657_A_run263.fastq.gz
@@ -25,12 +28,58 @@ progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_S -b 100 --singl
 progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_T -b 100 --single -l 180 -s 20 input/1657_T_merged.fastq.gz
 progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_U -b 100 --single -l 180 -s 20 input/1657_U_run265.fastq.gz
 
+###################################################################################################
+# Getting counts in R
+###################################################################################################
+source("https://bioconductor.org/biocLite.R")
+biocLite("tximport")
+biocLite("rhdf5")
+biocLite("AnnotationDbi")
+biocLite("arabidopsis.db0")
+biocLite("readr")
+biocLite("GenomicFeatures")
+
+library(tximport)
+library(rhdf5)
+library(AnnotationDbi)
+library(arabidopsis.db0)
+library(GenomicFeatures)
+library(readr)
+
+setwd("/mnt/scratch/gooss032/")
+
+dir <- "/mnt/scratch/gooss032/o_kallisto"
+list.files(dir)
+
+#preparing for reading in files
+samples <- read.table(file.path(dir, "run_info.txt"), header = TRUE)
+samples
+
+files <- file.path(dir, samples$sample, "abundance.tsv")
+names(files) <- samples$sample
+all(file.exists(files))
+
+#making an annotation object
+tx2gene <- read_csv("o_kallisto/gene_code_id.csv")
+txi <- tximport(files, type="kallisto", tx2gene = tx2gene)
+names(txi)
+head(txi$counts)
+
+#database <- makeTxDbFromGFF(file="Arab_zCHR.gtf")
+
+#getting transcript abundances instead of gene abundances, 
+#after which it can be summarized
+#txi.tx <- tximport(files, type = "kallisto", txOut = TRUE)
+#txi.sum <- summarizeToGene(txi.tx, tx2gene)
+#all.equal(txi$counts, txi.sum$counts)
+
+#write out gene abundances count table
+write.csv(txi,"kallisto_genes_results.csv",row.names=TRUE)
+write.csv(txi.tx,"kallisto_transcript_results.csv",row.names=TRUE)
 
 ###################################################################################################
 # Running Sleuth in R
 ###################################################################################################
-##Installing and preparing libraries
-#source("http://bioconductor.org/biocLite.R")
 #biocLite("devtools") 
 #biocLite("pachterlab/sleuth")
 
