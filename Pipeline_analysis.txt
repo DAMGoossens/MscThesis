@@ -7,59 +7,47 @@
 ###################################################################################################
 setwd("/mnt/scratch/gooss032/o_analysis")
 
-install.packages("car")
+#source("http://www.bioconductor.org/biocLite.R")
+#biocLite("ggbiplot")
 
-source("http://www.bioconductor.org/biocLite.R")
-
-library(car)
+library(ggbiplot)
 
 #reading in all results
-stringtie <- read.csv("stringtie_genes_results_STHT.csv")
-kallisto <- read.csv("kallisto_STHT_genes.csv")
-star <- read.csv("STAR_transcript_resultsSTHT.csv")
+stringtie <- read.csv("stringtie_gene_count_matrix.csv", header=TRUE)
+kallisto <- read.csv("kallisto_count_STHT.csv", header=TRUE)
+star <- read.csv("star_gene_count_matrix.csv", header=TRUE)
 
-#creating one master dataframe with all values
-string_star_kal <- merge(stringtie,star, by.x="si_id", by.y="sa_id")
-string_star_kal <- merge(string_star_kal, kallisto, by.x="si_id", by.y="k_target_id")
-colnames(string_star_kal)[1] <- "id"
+#create one master count file
+sika <- merge(stringtie,kallisto, by.x="gene_id", by.y="X")
+names(sika) <- c("id", "si_ST1", "si_ST2", "si_ST3", "si_HT1", "si_HT2", "si_HT3", 
+                 "k_ST1", "k_ST2", "k_ST3", "k_HT1", "k_HT2", "k_HT3")
+sikasa <- merge(sika, star, by.x="id", by.y="id")
+names(sikasa) <- c("id", "si_ST1", "si_ST2", "si_ST3", "si_HT1", "si_HT2", "si_HT3",
+                 "k_ST1", "k_ST2", "k_ST3", "k_HT1", "k_HT2", "k_HT3",
+                 "sa_ST1", "sa_ST2", "sa_ST3", "sa_HT1", "sa_HT2", "sa_HT3")
+write.csv(sikasa, "counts_all_methods.csv", row.names=FALSE)
 
 ###################################################################################################
 
 # STEP A: Difference between methods (ST-HT comparison)
 ###################################################################################################
-#Creating dataframes for correlation
-pvalues <- data.frame("si_pval" = string_star_kal$si_pval,
-                      "sa_pval" = string_star_kal$sa_pvalue,
-                      "k_pval" = string_star_kal$k_pval)
-
-#Creating correlation objects
-cor_pvalues <- cor(pvalues)
-
-#Scatterplots
-pairs(~si_pval+sa_pvalue+k_pval, data=string_star_kal, main = "P-value Scatterplot Matrix")                        #Scatterplots
-boxplot(si_pval~sa_pvalue~k_pval, data=string_star_kal, main = "P-value Boxplot", xlab = "Sampls", ylab="P-value") #Boxplot
-matrix_pvalues <- as.matrix(pvalues)
-hist(matrix_pvalues, main= "Summary of P_values across methods" , xlab = "P-values")                               #Histogram
+#Evaluating the counts
+sikasa_noid <- sikasa
+sikasa_noid$id <- NULL
+boxplot(sikasa_noid, main = "Counts by sample")
+boxplot(sikasa_noid, main = "Counts by sample", ylim = c(0,500), las=2)
 
 
-# Correlation based on pvalue
-#cor(x,y=NULL, method = c("pearson", "kendall", "spearman"))
+###
 
-
-
-
-Colnames
- [1] "id"                "si_fc"             "si_pval"
- [4] "si_qval"           "sa_baseMean"       "sa_log2FoldChange"
- [7] "sa_lfcSE"          "sa_stat"           "sa_pvalue"
-[10] "sa_padj"           "k_pval"            "k_qval"
-[13] "k_b"               "k_se_b"            "k_mean_obs"
-[16] "k_var_obs"         "k_tech_var"        "k_sigma_sq"
-[19] "k_smooth_sigma_sq" "k_final_sigma_sq"
+count.pca <- prcomp(sikasa_noid, center = TRUE, scale. = TRUE)
+summary(count.pca)
+plot(count.pca, type = "l")
+g <- ggbiplot(count.pca, obs.scale=1, var.scale=1, ellipse=TRUE)
 
 
 
 
 
 
--quantMode GeneCounts
+
