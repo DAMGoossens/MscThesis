@@ -89,7 +89,8 @@ res
 mcols(res, use.names=TRUE)
 
 #Set NA's of padj to 1
-res$padj = ifelse(is.na(res$padj), 1, res$padj)
+#res$padj = ifelse(is.na(res$padj), 1, res$padj)
 
-#MA plot
-plotMA( res, ylim = c(-1, 1) )
+write.csv(res, "star_STHT.csv", row.names=FALSE)
+
+
