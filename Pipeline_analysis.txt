@@ -8,9 +8,6 @@
 setwd("/mnt/scratch/gooss032/o_analysis")
 
 #source("http://www.bioconductor.org/biocLite.R")
-#biocLite("ggbiplot")
-
-library(ggbiplot)
 
 #reading in all results
 stringtie <- read.csv("stringtie_gene_count_matrix.csv", header=TRUE)
@@ -27,26 +24,27 @@ names(sikasa) <- c("id", "si_ST1", "si_ST2", "si_ST3", "si_HT1", "si_HT2", "si_H
                  "sa_ST1", "sa_ST2", "sa_ST3", "sa_HT1", "sa_HT2", "sa_HT3")
 write.csv(sikasa, "counts_all_methods.csv", row.names=FALSE)
 
+sikasa <- read.csv("counts_all_methods.csv", header=TRUE)
+
 ###################################################################################################
 
 # STEP A: Difference between methods (ST-HT comparison)
 ###################################################################################################
+sikasa$id <- NULL
+sikasa <- scale(sikasa)
+
 #Evaluating the counts
-sikasa_noid <- sikasa
-sikasa_noid$id <- NULL
-boxplot(sikasa_noid, main = "Counts by sample")
-boxplot(sikasa_noid, main = "Counts by sample", ylim = c(0,500), las=2)
+boxplot(sikasa, main = "Counts by sample")
+boxplot(sikasa, main = "Counts by sample", ylim = c(0,500), las=2)
 
+d <- dist(t(sikasa), method = "euclidean") # distance matrix
+fit <- hclust(d, method="ward")
+plot(fit)
 
-###
-
-count.pca <- prcomp(sikasa_noid, center = TRUE, scale. = TRUE)
+count.pca <- prcomp(sikasa, center = TRUE, scale. = TRUE)
 summary(count.pca)
 plot(count.pca, type = "l")
-g <- ggbiplot(count.pca, obs.scale=1, var.scale=1, ellipse=TRUE)
-
-
-
+biplot(count.pca)
 
 
 
