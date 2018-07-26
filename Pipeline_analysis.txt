@@ -7,7 +7,11 @@
 ###################################################################################################
 setwd("/mnt/scratch/gooss032/o_analysis")
 
-#source("http://www.bioconductor.org/biocLite.R")
+source("http://www.bioconductor.org/biocLite.R")
+biocLite("ggplot2")
+install.packages("tidyverse")
+library(ggplot2)
+library(tidyverse)
 
 #reading in all results
 stringtie <- read.csv("stringtie_gene_count_matrix.csv", header=TRUE)
@@ -24,28 +28,69 @@ names(sikasa) <- c("id", "si_ST1", "si_ST2", "si_ST3", "si_HT1", "si_HT2", "si_H
                  "sa_ST1", "sa_ST2", "sa_ST3", "sa_HT1", "sa_HT2", "sa_HT3")
 write.csv(sikasa, "counts_all_methods.csv", row.names=FALSE)
 
+stringtie <- read.csv("stringtie_stht.csv", header=TRUE)
+star <- read.table("star_stht.csv", header=TRUE, row.names=TRUE)
+kallisto <- read.csv("kallisto_stht.csv", header=TRUE)
+
+stsa <- merge(stringtie,star, by.x="id", by.y="id")
+stsa$feature = NULL
+colnames(stsa) <- c("id", "si_fc", "si_pval", "si_qval",
+                    "sa_baseMean", "sa_l2FC", "sa_lfcSE", 
+                    "sa_stat", "sa_pvalue", "sa_padj")
+stsak <- merge(stsa, kallisto, by.x="id", by.y="gene_id")
+stsak$X = NULL
+stsak$target_id = NULL
+colnames(stsak) <- c("id", "si_fc", "si_pval", "si_qval", "sa_baseMean",
+                     "sa_l2FC", "sa_lfcSE", "sa_stat", "sa_pvalue", "sa_padj",
+                     "k_pval", "k_qval", "k_b", "k_se_b", "k_mean_obs", "k_var_obs",
+                     "k_tech_var", "k_sigma_sq", "k_smooth_sigma_sq", "k_final_sigma_sq")
+write.csv(stsak, "table_all_methods.csv", row.names=TRUE)
+
 sikasa <- read.csv("counts_all_methods.csv", header=TRUE)
+stsak <- read.csv("table_all_methods.csv", header=TRUE)
 
 ###################################################################################################
 
 # STEP A: Difference between methods (ST-HT comparison)
 ###################################################################################################
+#Evaluating counts 
 sikasa$id <- NULL
 sikasa <- scale(sikasa)
 
-#Evaluating the counts
+###Evaluating the counts
+#Boxplot
 boxplot(sikasa, main = "Counts by sample")
 boxplot(sikasa, main = "Counts by sample", ylim = c(0,500), las=2)
 
+#Hiarchical clustering
 d <- dist(t(sikasa), method = "euclidean") # distance matrix
 fit <- hclust(d, method="ward")
 plot(fit)
 
+#PCA
 count.pca <- prcomp(sikasa, center = TRUE, scale. = TRUE)
 summary(count.pca)
 plot(count.pca, type = "l")
 biplot(count.pca)
 
+#Correlation matrix
+cor(sikasa)
+pairs(~si_ST1+k_ST1+sa_ST1, data=sikasa, main="Scatterplot matrix of ST1 samples")
+pairs(~si_ST1+si_ST2+si_ST3+k_ST1+k_ST2+k_ST3+sa_ST1+sa_ST2+sa_ST3, data=sikasa, main="Scatterplot matrix of ST samples")
 
 
+#Evaluating qvalues
+qvalues <- data.frame(stsak$id, stsak$si_qval, stsak$sa_padj, stsak$k_qval)
+qvaluesx <- qvalues
+qvaluesx$stsak.id = NULL
+names(qvaluesx) = c("si_qval", "sa_padj", "k_qval")
 
+graph <- qvaluesx %>% 
+            gather(category, value)
+
+ggplot(graph, aes(x = value, fill = category)) +
+  geom_histogram(binwidth = 0.1, color = "black", position="stack")
+
+pairs(~si_qval+sa_padj+k_qval, qvaluesx, main="Scatterplot matrix of Q values")
+
+pairs(~si_fc+k_b+sa_l2FC, stsak, main = "Scatterplot matrix fc v b values")
