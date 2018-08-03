@@ -14,37 +14,37 @@ library(ggplot2)
 library(tidyverse)
 
 #reading in all results
-stringtie <- read.csv("stringtie_gene_count_matrix.csv", header=TRUE)
-kallisto <- read.csv("kallisto_count_STHT.csv", header=TRUE)
-star <- read.csv("star_gene_count_matrix.csv", header=TRUE)
+#stringtie <- read.csv("stringtie_gene_count_matrix.csv", header=TRUE)
+#kallisto <- read.csv("kallisto_count_STHT.csv", header=TRUE)
+#star <- read.csv("star_gene_count_matrix.csv", header=TRUE)
 
 #create one master count file
-sika <- merge(stringtie,kallisto, by.x="gene_id", by.y="X")
-names(sika) <- c("id", "si_ST1", "si_ST2", "si_ST3", "si_HT1", "si_HT2", "si_HT3", 
-                 "k_ST1", "k_ST2", "k_ST3", "k_HT1", "k_HT2", "k_HT3")
-sikasa <- merge(sika, star, by.x="id", by.y="id")
-names(sikasa) <- c("id", "si_ST1", "si_ST2", "si_ST3", "si_HT1", "si_HT2", "si_HT3",
-                 "k_ST1", "k_ST2", "k_ST3", "k_HT1", "k_HT2", "k_HT3",
-                 "sa_ST1", "sa_ST2", "sa_ST3", "sa_HT1", "sa_HT2", "sa_HT3")
-write.csv(sikasa, "counts_all_methods.csv", row.names=FALSE)
+#sika <- merge(stringtie,kallisto, by.x="gene_id", by.y="X")
+#names(sika) <- c("id", "si_ST1", "si_ST2", "si_ST3", "si_HT1", "si_HT2", "si_HT3", 
+#                 "k_ST1", "k_ST2", "k_ST3", "k_HT1", "k_HT2", "k_HT3")
+#sikasa <- merge(sika, star, by.x="id", by.y="id")
+#names(sikasa) <- c("id", "si_ST1", "si_ST2", "si_ST3", "si_HT1", "si_HT2", "si_HT3",
+#                 "k_ST1", "k_ST2", "k_ST3", "k_HT1", "k_HT2", "k_HT3",
+#                 "sa_ST1", "sa_ST2", "sa_ST3", "sa_HT1", "sa_HT2", "sa_HT3")
+#write.csv(sikasa, "counts_all_methods.csv", row.names=FALSE)
 
-stringtie <- read.csv("stringtie_stht.csv", header=TRUE)
-star <- read.table("star_stht.csv", header=TRUE, row.names=TRUE)
-kallisto <- read.csv("kallisto_stht.csv", header=TRUE)
+#stringtie <- read.csv("stringtie_stht.csv", header=TRUE)
+#star <- read.table("star_stht.csv", header=TRUE, row.names=TRUE)
+#kallisto <- read.csv("kallisto_stht.csv", header=TRUE)
 
-stsa <- merge(stringtie,star, by.x="id", by.y="id")
-stsa$feature = NULL
-colnames(stsa) <- c("id", "si_fc", "si_pval", "si_qval",
+#stsa <- merge(stringtie,star, by.x="id", by.y="id")
+#stsa$feature = NULL
+#colnames(stsa) <- c("id", "si_fc", "si_pval", "si_qval",
                     "sa_baseMean", "sa_l2FC", "sa_lfcSE", 
                     "sa_stat", "sa_pvalue", "sa_padj")
-stsak <- merge(stsa, kallisto, by.x="id", by.y="gene_id")
-stsak$X = NULL
-stsak$target_id = NULL
-colnames(stsak) <- c("id", "si_fc", "si_pval", "si_qval", "sa_baseMean",
-                     "sa_l2FC", "sa_lfcSE", "sa_stat", "sa_pvalue", "sa_padj",
-                     "k_pval", "k_qval", "k_b", "k_se_b", "k_mean_obs", "k_var_obs",
-                     "k_tech_var", "k_sigma_sq", "k_smooth_sigma_sq", "k_final_sigma_sq")
-write.csv(stsak, "table_all_methods.csv", row.names=TRUE)
+#stsak <- merge(stsa, kallisto, by.x="id", by.y="gene_id")
+#stsak$X = NULL
+#stsak$target_id = NULL
+#colnames(stsak) <- c("id", "si_fc", "si_pval", "si_qval", "sa_baseMean",
+#                     "sa_l2FC", "sa_lfcSE", "sa_stat", "sa_pvalue", "sa_padj",
+#                     "k_pval", "k_qval", "k_b", "k_se_b", "k_mean_obs", "k_var_obs",
+#                     "k_tech_var", "k_sigma_sq", "k_smooth_sigma_sq", "k_final_sigma_sq")
+#write.csv(stsak, "table_all_methods.csv", row.names=TRUE)
 
 sikasa <- read.csv("counts_all_methods.csv", header=TRUE)
 stsak <- read.csv("table_all_methods.csv", header=TRUE)
@@ -75,8 +75,10 @@ biplot(count.pca)
 
 #Correlation matrix
 cor(sikasa)
-pairs(~si_ST1+k_ST1+sa_ST1, data=sikasa, main="Scatterplot matrix of ST1 samples")
-pairs(~si_ST1+si_ST2+si_ST3+k_ST1+k_ST2+k_ST3+sa_ST1+sa_ST2+sa_ST3, data=sikasa, main="Scatterplot matrix of ST samples")
+pairs(~log(si_ST1)+log(k_ST1)+log(sa_ST1), data=sikasa, main="Scatterplot matrix of ST1 samples")
+pairs(~log(si_ST1)+log(si_ST2)+log(si_ST3)+log(k_ST1)+log(k_ST2)+log(k_ST3)+log(sa_ST1)+log(sa_ST2)+log(sa_ST3), data=sikasa, main="Scatterplot matrix of ST samples")
+pairs(~log(si_HT1)+log(k_HT1)+log(sa_HT1), data=sikasa, main="Scatterplot matrix of HT1 samples")
+pairs(~log(si_HT1)+log(si_HT2)+log(si_HT3)+log(k_HT1)+log(k_HT2)+log(k_HT3)+log(sa_HT1)+log(sa_HT2)+log(sa_HT3), data=sikasa, main="Scatterplot matrix of HT samples")
 
 
 #Evaluating qvalues
@@ -92,5 +94,99 @@ ggplot(graph, aes(x = value, fill = category)) +
   geom_histogram(binwidth = 0.1, color = "black", position="stack")
 
 pairs(~si_qval+sa_padj+k_qval, qvaluesx, main="Scatterplot matrix of Q values")
-
 pairs(~si_fc+k_b+sa_l2FC, stsak, main = "Scatterplot matrix fc v b values")
+
+###################################################################################################
+
+# STEP B: Difference between methods (ST-HT comparison)
+###################################################################################################
+#Slopegraph kallisto vs star
+slope.ksa <- data.frame("id" = stsak$id,
+                        "k_b" = stsak$k_b,
+                        "sa_fc" = stsak$sa_2tolog2fc)
+
+l11 <- paste(slope.ksa$id, comma_format()(round(slope.ksa$k_b)), sep="\n")
+l12 <- paste(slope.ksa$id, comma_format()(round(slope.ksa$sa_fc)), sep="\n")
+p <- ggplot(slope.ksa) + geom_segment(aes(x=0,xend=0.05,y=k_b,yend=sa_fc), size=0.75)
+
+p<-p + theme(panel.background = element_blank())
+p<-p + theme(panel.grid=element_blank())
+p<-p + theme(axis.ticks=element_blank())
+p<-p + theme(axis.text=element_blank())
+p<-p + theme(panel.border=element_blank())
+
+p<-p + xlab("Slopegraph Kallisto vs STAR: b vs fc") + ylab("")
+p
+
+#Slopegraph stringtie vs star
+slope.sisa <- data.frame("id" = sisak$id,
+                        "si_fc" = sisak$si_qval,
+                        "sa_fc" = sisak$sa_2tolog2fc)
+
+l13 <- paste(slope.sisa$id, comma_format()(round(slope.sisa$si_fc)), sep="\n")
+l14 <- paste(slope.sisa$id, comma_format()(round(slope.sisa$sa_fc)), sep="\n")
+q <- ggplot(slope.sisa) + geom_segment(aes(x=0,xend=0.05,y=si_fc,yend=sa_fc), size=0.75)
+
+q<-q + theme(panel.background = element_blank())
+q<-q + theme(panel.grid=element_blank())
+q<-q + theme(axis.ticks=element_blank())
+q<-q + theme(axis.text=element_blank())
+q<-q + theme(panel.border=element_blank())
+
+q<-q + xlab("Slopegraph Stringtie vs STAR") + ylab("")
+q
+
+#Slopegraph stringtie vs star
+slope.sisa <- data.frame("id" = sisak$id,
+                        "si_fc" = sisak$si_qval,
+                        "sa_fc" = sisak$sa_2tolog2fc)
+
+
+l15 <- paste(slope.sisa$id, comma_format()(round(slope.sisa$si_fc)), sep="\n")
+l16 <- paste(slope.sisa$id, comma_format()(round(slope.ksa$sa_fc)), sep="\n")
+r <- ggplot(slope.sisa) + geom_segment(aes(x=0,xend=0.05,y=si_fc,yend=sa_fc), size=0.75)
+
+r<-r + theme(panel.background = element_blank())
+r<-r + theme(panel.grid=element_blank())
+r<-r + theme(axis.ticks=element_blank())
+r<-r + theme(axis.text=element_blank())
+r<-r + theme(panel.border=element_blank())
+
+r<-r + xlab("Slopegraph Stringtie vs STAR") + ylab("")
+r
+
+#Venndiagram
+library(VennDiagram)
+ 
+#Then generate 3 sets of words.There I generate 3 times 200 SNPs names.
+SNP_pop_1=paste(rep("SNP_" , 200) , sample(c(1:1000) , 200 , replace=F) , sep="")
+SNP_pop_2=paste(rep("SNP_" , 200) , sample(c(1:1000) , 200 , replace=F) , sep="")
+SNP_pop_3=paste(rep("SNP_" , 200) , sample(c(1:1000) , 200 , replace=F) , sep="")
+ 
+#The goal of the Venn Diagram is to count how many words are common between SNP_pop_1 and SNP_pop_2, between SNP_pop_1 and SNP_pop_3 and so on...
+#The venn.diagram function do it automatically and draw it! (you will get a png file in your current working directory)
+ 
+venn.diagram(
+x = list(SNP_pop_1 , SNP_pop_2 , SNP_pop_3),
+category.names = c("SNP pop 1" , "SNP pop 2 " , "SNP pop 3"),
+filename = '#14_venn_diagramm.png',
+        output = TRUE ,
+        imagetype="png" ,
+        height = 480 , 
+        width = 480 , 
+        resolution = 300,
+        compression = "lzw",
+        lwd = 2,
+        lty = 'blank',
+        fill = c('yellow', 'purple', 'green'),
+        cex = 1,
+        fontface = "bold",
+        fontfamily = "sans",
+        cat.cex = 0.6,
+        cat.fontface = "bold",
+        cat.default.pos = "outer",
+        cat.pos = c(-27, 27, 135),
+        cat.dist = c(0.055, 0.055, 0.085),
+        cat.fontfamily = "sans",
+        rotation = 1
+        )
