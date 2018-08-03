@@ -146,8 +146,6 @@ library(ggfortify)
 library(ggplot2)
 library(cowplot)
 
-#REALLY NEEDED?: ballgown, plyr
-
 getwd()
 setwd("/mnt/scratch/gooss032/o_stringtie")
 
@@ -168,9 +166,9 @@ transcripts.fpkm.log= log2(transcripts.fpkm+1)
 
 #testing statistical significance
 bg_filt = subset(bg,"rowVars(texpr(bg)) >1",genomesubset=TRUE)
-results_transcripts = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE)     #geld alleen maar voor verschil tussen twee groepen. 
+results_transcripts = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE)     #only applicable for comparing two groups
 results_genes = stattest(bg, feature="gene", meas="FPKM", covariate="condition", getFC=TRUE)
-results_transcripts = data.frame(geneNames=ballgown:geneNames(bg),geneIDs=ballgown:geneIDs(bg),results_transcripts)   #hier komen NA's
+results_transcripts = data.frame(geneNames=ballgown:geneNames(bg),geneIDs=ballgown:geneIDs(bg),results_transcripts)   
 
 #Sort on p- and q- value and print the list to files
 results_transcripts = arrange(results_transcripts,pval)
