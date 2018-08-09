@@ -25,18 +25,19 @@ library(tidyverse)
 #sikasa <- merge(sika, star, by.x="id", by.y="id")
 #names(sikasa) <- c("id", "si_ST1", "si_ST2", "si_ST3", "si_HT1", "si_HT2", "si_HT3",
 #                 "k_ST1", "k_ST2", "k_ST3", "k_HT1", "k_HT2", "k_HT3",
-#                 "sa_ST1", "sa_ST2", "sa_ST3", "sa_HT1", "sa_HT2", "sa_HT3")
+#                 "sa_ST1", "sa_ST2", "sa_ST3", "sa_HT1", "sa_H= NULL
+T2", "sa_HT3")
 #write.csv(sikasa, "counts_all_methods.csv", row.names=FALSE)
 
-#stringtie <- read.csv("stringtie_stht.csv", header=TRUE)
-#star <- read.table("star_stht.csv", header=TRUE, row.names=TRUE)
+#stringtie <- read.csv("stringtie_genes_results.csv", header=TRUE)
+#star <- read.csv("star_STHT.csv", header=TRUE)
 #kallisto <- read.csv("kallisto_stht.csv", header=TRUE)
 
-#stsa <- merge(stringtie,star, by.x="id", by.y="id")
+#stsa <- merge(stringtie,star, by.x="id", by.y="X")
 #stsa$feature = NULL
 #colnames(stsa) <- c("id", "si_fc", "si_pval", "si_qval",
-                    "sa_baseMean", "sa_l2FC", "sa_lfcSE", 
-                    "sa_stat", "sa_pvalue", "sa_padj")
+#                    "sa_baseMean", "sa_l2FC", "sa_lfcSE", 
+#                    "sa_stat", "sa_pvalue", "sa_padj")
 #stsak <- merge(stsa, kallisto, by.x="id", by.y="gene_id")
 #stsak$X = NULL
 #stsak$target_id = NULL
@@ -68,10 +69,10 @@ fit <- hclust(d, method="ward")
 plot(fit)
 
 #PCA
-count.pca <- prcomp(sikasa, center = TRUE, scale. = TRUE)
+count.pca <- prcomp(t(sikasa), center = TRUE, scale. = TRUE)
 summary(count.pca)
 plot(count.pca, type = "l")
-biplot(count.pca)
+biplot(count.pca, var.axes = FALSE)
 
 #Correlation matrix
 cor(sikasa)
@@ -80,21 +81,26 @@ pairs(~log(si_ST1)+log(si_ST2)+log(si_ST3)+log(k_ST1)+log(k_ST2)+log(k_ST3)+log(
 pairs(~log(si_HT1)+log(k_HT1)+log(sa_HT1), data=sikasa, main="Scatterplot matrix of HT1 samples")
 pairs(~log(si_HT1)+log(si_HT2)+log(si_HT3)+log(k_HT1)+log(k_HT2)+log(k_HT3)+log(sa_HT1)+log(sa_HT2)+log(sa_HT3), data=sikasa, main="Scatterplot matrix of HT samples")
 
+#Comparing fc vs b values
+fcb <- data.frame(stsak$si_fc, stsak$k_b, stsak$sa_l2FC)
+names(fcb) = c("si_fc", "k_b", "sa_fc")
+fcb$si_fc <- log2(fcb$si_fc)
+fcb$k_b <- 2^fcb$k_b
+pairs(~si_fc+k_b+sa_fc, fcb, main = "Scatterplot matrix fc v b values")
 
-#Evaluating qvalues
-qvalues <- data.frame(stsak$id, stsak$si_qval, stsak$sa_padj, stsak$k_qval)
-qvaluesx <- qvalues
-qvaluesx$stsak.id = NULL
-names(qvaluesx) = c("si_qval", "sa_padj", "k_qval")
+#Evaluating pvalues
+pvalues <- data.frame(stsak$id, stsak$si_pval, stsak$sa_pvalue, stsak$k_pval)
+pvaluesx <- pvalues
+pvaluesx$stsak.id = NULL
+names(pvaluesx) = c("si_pval", "sa_pval", "k_pval")
 
-graph <- qvaluesx %>% 
+pairs(~si_pval+sa_pval+k_pval, pvaluesx, main="Scatterplot matrix of Q values")
+
+graph <- pvaluesx %>% 
             gather(category, value)
 
 ggplot(graph, aes(x = value, fill = category)) +
   geom_histogram(binwidth = 0.1, color = "black", position="stack")
-
-pairs(~si_qval+sa_padj+k_qval, qvaluesx, main="Scatterplot matrix of Q values")
-pairs(~si_fc+k_b+sa_l2FC, stsak, main = "Scatterplot matrix fc v b values")
 
 ###################################################################################################
 
