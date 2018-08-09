@@ -76,6 +76,7 @@ dists = dist(t(assay(rld)))
 plot(hclust(dists))
 
 #Estimate dispersion values
+dds = estimateSizeFactors(dds)
 dds = estimateDispersions(dds)
 plotDispEsts(dds)
 
@@ -91,6 +92,6 @@ mcols(res, use.names=TRUE)
 #Set NA's of padj to 1
 #res$padj = ifelse(is.na(res$padj), 1, res$padj)
 
-write.csv(res, "star_STHT.csv", row.names=FALSE)
+write.csv(res, "star_STHT.csv", row.names=TRUE)
 
 
