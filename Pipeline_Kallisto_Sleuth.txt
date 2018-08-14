@@ -96,7 +96,7 @@ kal_dirs
 s2c <- read.table("run_info.txt", header=TRUE, stringsAsFactors=FALSE)
 s2c <- dplyr::mutate(s2c, path = kal_dirs)
 s2c = s2c[grep("HT|ST",s2c$condition),] 
-s2c    						#Don't forget to check if everything corresponds correctly 						#Don't forget to check if everything corresponds correctly
+s2c    						#Don't forget to check if everything corresponds correctly 				
 
 t2g = read.csv("gene_code_id.csv",header=TRUE,stringsAsFactors=FALSE)
 colnames(t2g)  = c("target_id","gene_id")
