@@ -24,74 +24,52 @@ progs/STAR-2.5.2b/bin/Linux_x86_64/STAR --genomeDir input --readFilesIn input/16
 ###################################################################################################
 # Running DESeq2 in R
 ###################################################################################################
-library( "GenomicFeatures" )
+source("http://bioconductor.org/biocLite.R")
+biocLite("DESeq2")
 library(DESeq2)
-library( "GenomicAlignments" )
-library( "Rsamtools" )
 
-setwd("/mnt/scratch/gooss032")
+count_data = read.csv("star_gene_count_matrix.csv", row.names=1,header=TRUE)
+count_data = count_data[-nrow(count_data),]                 #sloppy writing, needs fixing
+count_data = count_data[-nrow(count_data),]
+count_data = count_data[-nrow(count_data),]
+count_data = count_data[-nrow(count_data),]
 
-hse <- makeTxDbFromGFF("Araport11_GFF3_genes_transposons.201606.gtf", format="gtf")
-exonsByGene <- exonsBy(hse, by="gene")
+#File statistics
+dim(count_data)
+class(count_data)
+colnames(count_data)
+rownames(count_data)
+summary(count_data)
 
-#Reading in bam files
-fls <- list.files( "input/", pattern="_sorted.bam$", full=TRUE )
-bamLst <- BamFileList( fls, yieldSize=100000 )
+#Filtering
+mx = apply(count_data, 1, max )
+dim(mx)
+count_data = count_data[ mx > 10, ]
+dim(count_data)
 
-#Creating a summerized experiment object
-se <- summarizeOverlaps( exonsByGene, bamLst, mode="Union", singleEnd=FALSE, ignore.strand=TRUE, fragments=TRUE )
+#Creating a DESeq2 data object
+condition = factor(c("ST", "ST", "ST", "HT", "HT", "HT"))
+col_data = DataFrame(condition)
+dds = DESeqDataSetFromMatrix(count_data, col_data, ~condition)
 
-#Checking se
-se
-head(assay(se))
-colData(se)
+dds = estimateSizeFactors(dds)      #calculating linear correciton factors
+sizeFactors(dds)
 
-#Prepping se for DEG analysis
-sampleInfo <- read.csv("input/sampleinfo.csv")     
-head(sampleInfo)
-head(colnames(se))
-sampleInfo <- DataFrame(sampleInfo)
-seIdx <- match(colnames(se), sampleInfo$run)
-head( cbind( colData(se)[ , 1:3 ], sampleInfo[ seIdx, ] ) )
-colData(se) <- cbind( colData(se), sampleInfo[ seIdx, ] )
-
-ddsFull <- DESeqDataSet( se, design = ~ treatment )
-
-as.data.frame( colData( ddsFull )[ ,c("run","treatment") ] )
-ddsCollapsed <- collapseReplicates( ddsFull, groupby = ddsFull$treatment, run = ddsFull$run )
-head( as.data.frame( colData(ddsCollapsed)[ ,c("run","runsCollapsed") ] ), 12 )
-
-#Setting the control
-dds <-ddsCollapsed
-dds$treatment <- relevel(dds$treatment, "ST")
-as.data.frame(colData(dds))
-
-#Normalizing and plotting dds object
-rld = rlog(dds)
-plot(density(assay(dds)[,1]), main="counts")
+#Clustering
+rld = rlog(dds)                      #transforming the counts
 plot(density(assay(rld)[,1]), main="log counts")
 
-#Creating and plotting (euclidian) distance
 dists = dist(t(assay(rld)))
 plot(hclust(dists))
 
-#Estimate dispersion values
-dds = estimateSizeFactors(dds)
+#Calculating and checking dispersions 
 dds = estimateDispersions(dds)
 plotDispEsts(dds)
 
-#Calling DESeq function for analysis
-dds <- DESeq(dds)                                             #gives LP vs. ST
+#DE
+dds = nbinomWaldTest(dds)
+res = results(dds)
+head(res)
+#res$padj = ifelse(is.na(res$padj), 1, res$padj)      #setting NA's to 1
 
-#Select preferred treatment variables for testing and show results
-res <- results( dds, contrast = c("treatment", "HT", "ST") )
-res <- results(dds)
-res
-mcols(res, use.names=TRUE)
-
-#Set NA's of padj to 1
-#res$padj = ifelse(is.na(res$padj), 1, res$padj)
-
-write.csv(res, "star_STHT.csv", row.names=TRUE)
-
-
+write.csv(results, "star_STHT.csv", row.names=TRUE)
