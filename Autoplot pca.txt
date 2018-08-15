@@ -1,0 +1,41 @@
+
+
+
+rm(list=ls(all=TRUE))
+
+install.packages("ggfortify")
+library(ggfortify)
+
+sikasa <- read.csv("sikasa_pca.csv", header=TRUE)
+new <- sikasa
+new$id = NULL
+dim(new)
+new <- new[-nrow(new),]
+new <- t(new)
+
+
+
+
+new <- scale(new)
+
+
+counts <- sikasa
+counts$id <- NULL
+counts$method <- NULL
+counts <- scale(counts)
+
+count.pca <- prcomp(new), center = TRUE, scale. = TRUE)
+autoplot(count.pca)
+
+
+
+
+#colored
+autoplot(prcomp(df), data = iris, colour = 'Species')
+
+autoplot(prcomp(df), data = iris, colour = 'Species', shape = FALSE, label.size = 3)
+
+autoplot(count.pca, data=sikasa, colour = 'method')
+
+
+autoplot(prcomp(new), data=sikasa, colour = 'method')

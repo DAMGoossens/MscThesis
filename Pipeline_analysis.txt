@@ -27,28 +27,27 @@ library(tidyverse)
 #sikasa <- merge(sika, star, by.x="id", by.y="id")
 #names(sikasa) <- c("id", "si_ST1", "si_ST2", "si_ST3", "si_HT1", "si_HT2", "si_HT3",
 #                 "k_ST1", "k_ST2", "k_ST3", "k_HT1", "k_HT2", "k_HT3",
-#                 "sa_ST1", "sa_ST2", "sa_ST3", "sa_HT1", "sa_H= NULL
-T2", "sa_HT3")
+#                 "sa_ST1", "sa_ST2", "sa_ST3", "sa_HT1", "sa_HT2", "sa_HT3")
 #write.csv(sikasa, "counts_all_methods.csv", row.names=FALSE)
 
-stringtie <- read.csv("stringtie_genes_stht.csv", header=TRUE)
-star <- read.csv("star_STHT.csv", header=TRUE)
-star$X <- NULL
-kallisto <- read.csv("kallisto_stht.csv", header=TRUE)
+#stringtie <- read.csv("stringtie_genes_stht.csv", header=TRUE)
+#star <- read.csv("star_STHT.csv", header=TRUE)
+#star$X <- NULL
+#kallisto <- read.csv("kallisto_stht.csv", header=TRUE)
 
-stsa <- merge(stringtie,star, by.x="id", by.y="id")
-stsa$feature = NULL
-colnames(stsa) <- c("id", "si_fc", "si_pval", "si_qval",
-                    "sa_baseMean", "sa_l2FC", "sa_lfcSE", 
-                    "sa_stat", "sa_pvalue", "sa_padj")
-stsak <- merge(stsa, kallisto, by.x="id", by.y="gene_id")
-stsak$X = NULL
-stsak$target_id = NULL
-colnames(stsak) <- c("id", "si_fc", "si_pval", "si_qval", "sa_baseMean",
-                     "sa_l2FC", "sa_lfcSE", "sa_stat", "sa_pvalue", "sa_padj",
-                     "k_pval", "k_qval", "k_b", "k_se_b", "k_mean_obs", "k_var_obs",
-                     "k_tech_var", "k_sigma_sq", "k_smooth_sigma_sq", "k_final_sigma_sq")
-write.csv(stsak, "table_all_methods_optie.csv", row.names=TRUE)
+#stsa <- merge(stringtie,star, by.x="id", by.y="id")
+#stsa$feature = NULL
+#colnames(stsak) <- c("id", "si_fc", "si_pval", "si_qval",
+#                    "sa_baseMean", "sa_l2FC", "sa_lfcSE", 
+#                    "sa_stat", "sa_pvalue", "sa_padj")
+#stsak <- merge(stsa, kallisto, by.x="id", by.y="gene_id")
+#stsak$X = NULL
+#stsak$target_id = NULL
+#colnames(stsak) <- c("id", "si_fc", "si_pval", "si_qval", "sa_baseMean",
+#                     "sa_l2FC", "sa_lfcSE", "sa_stat", "sa_pvalue", "sa_padj",
+#                     "k_pval", "k_qval", "k_b", "k_se_b", "k_mean_obs", "k_var_obs",
+#                     "k_tech_var", "k_sigma_sq", "k_smooth_sigma_sq", "k_final_sigma_sq")
+#write.csv(stsak, "table_all_methods_optie.csv", row.names=TRUE)
 
 sikasa <- read.csv("counts_all_methods.csv", header=TRUE)
 stsak <- read.csv("table_all_methods.csv", header=TRUE)
@@ -65,6 +64,10 @@ sikasa <- scale(sikasa)
 #Boxplot
 boxplot(sikasa, main = "Counts by sample")
 boxplot(sikasa, main = "Counts by sample", ylim = c(0,500), las=2)
+
+#Boxplot of log counts
+log_sikasa <- log(sikasa+1)
+boxplot(log_sikasa, main = "Log counts by sample", ylim = c(0,0.5), las=2)
 
 #Hiarchical clustering
 fit <- hclust(as.dist(1-cor(sikasa), method="pearson")), method="complete")
@@ -104,6 +107,10 @@ graph <- pvaluesx %>%
 
 ggplot(graph, aes(x = value, fill = category)) +
   geom_histogram(binwidth = 0.1, color = "black", position="stack")
+
+#STAR: ST vs HT
+pairs(~sa_ST1+sa_ST2+sa_ST3+sa_HT1+sa_HT2+sa_HT3, data=sikasa, main="Scatterplot matrix of STAR: ST vs HT")
+pairs(~log(sa_ST1)+log(sa_ST2)+log(sa_ST3)+log(sa_HT1)+log(sa_HT2)+log(sa_HT3), data=sikasa, main="Scatterplot matrix of STAR: ST vs HT - log values")
 
 ###################################################################################################
 
