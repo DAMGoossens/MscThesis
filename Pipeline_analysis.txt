@@ -5,6 +5,8 @@
 
 # Loading libraries and preparing datasets
 ###################################################################################################
+rm(list=ls(all=TRUE))
+
 setwd("/mnt/scratch/gooss032/o_analysis")
 
 source("http://www.bioconductor.org/biocLite.R")
@@ -29,23 +31,24 @@ library(tidyverse)
 T2", "sa_HT3")
 #write.csv(sikasa, "counts_all_methods.csv", row.names=FALSE)
 
-#stringtie <- read.csv("stringtie_genes_results.csv", header=TRUE)
-#star <- read.csv("star_STHT.csv", header=TRUE)
-#kallisto <- read.csv("kallisto_stht.csv", header=TRUE)
+stringtie <- read.csv("stringtie_genes_stht.csv", header=TRUE)
+star <- read.csv("star_STHT.csv", header=TRUE)
+star$X <- NULL
+kallisto <- read.csv("kallisto_stht.csv", header=TRUE)
 
-#stsa <- merge(stringtie,star, by.x="id", by.y="X")
-#stsa$feature = NULL
-#colnames(stsa) <- c("id", "si_fc", "si_pval", "si_qval",
-#                    "sa_baseMean", "sa_l2FC", "sa_lfcSE", 
-#                    "sa_stat", "sa_pvalue", "sa_padj")
-#stsak <- merge(stsa, kallisto, by.x="id", by.y="gene_id")
-#stsak$X = NULL
-#stsak$target_id = NULL
-#colnames(stsak) <- c("id", "si_fc", "si_pval", "si_qval", "sa_baseMean",
-#                     "sa_l2FC", "sa_lfcSE", "sa_stat", "sa_pvalue", "sa_padj",
-#                     "k_pval", "k_qval", "k_b", "k_se_b", "k_mean_obs", "k_var_obs",
-#                     "k_tech_var", "k_sigma_sq", "k_smooth_sigma_sq", "k_final_sigma_sq")
-#write.csv(stsak, "table_all_methods.csv", row.names=TRUE)
+stsa <- merge(stringtie,star, by.x="id", by.y="id")
+stsa$feature = NULL
+colnames(stsa) <- c("id", "si_fc", "si_pval", "si_qval",
+                    "sa_baseMean", "sa_l2FC", "sa_lfcSE", 
+                    "sa_stat", "sa_pvalue", "sa_padj")
+stsak <- merge(stsa, kallisto, by.x="id", by.y="gene_id")
+stsak$X = NULL
+stsak$target_id = NULL
+colnames(stsak) <- c("id", "si_fc", "si_pval", "si_qval", "sa_baseMean",
+                     "sa_l2FC", "sa_lfcSE", "sa_stat", "sa_pvalue", "sa_padj",
+                     "k_pval", "k_qval", "k_b", "k_se_b", "k_mean_obs", "k_var_obs",
+                     "k_tech_var", "k_sigma_sq", "k_smooth_sigma_sq", "k_final_sigma_sq")
+write.csv(stsak, "table_all_methods_optie.csv", row.names=TRUE)
 
 sikasa <- read.csv("counts_all_methods.csv", header=TRUE)
 stsak <- read.csv("table_all_methods.csv", header=TRUE)
@@ -64,8 +67,7 @@ boxplot(sikasa, main = "Counts by sample")
 boxplot(sikasa, main = "Counts by sample", ylim = c(0,500), las=2)
 
 #Hiarchical clustering
-d <- dist(t(sikasa), method = "euclidean") # distance matrix
-fit <- hclust(d, method="ward")
+fit <- hclust(as.dist(1-cor(sikasa), method="pearson")), method="complete")
 plot(fit)
 
 #PCA
@@ -82,6 +84,7 @@ pairs(~log(si_HT1)+log(k_HT1)+log(sa_HT1), data=sikasa, main="Scatterplot matrix
 pairs(~log(si_HT1)+log(si_HT2)+log(si_HT3)+log(k_HT1)+log(k_HT2)+log(k_HT3)+log(sa_HT1)+log(sa_HT2)+log(sa_HT3), data=sikasa, main="Scatterplot matrix of HT samples")
 
 #Comparing fc vs b values
+stsak <- scale(stsak)
 fcb <- data.frame(stsak$si_fc, stsak$k_b, stsak$sa_l2FC)
 names(fcb) = c("si_fc", "k_b", "sa_fc")
 fcb$si_fc <- log2(fcb$si_fc)
@@ -94,7 +97,7 @@ pvaluesx <- pvalues
 pvaluesx$stsak.id = NULL
 names(pvaluesx) = c("si_pval", "sa_pval", "k_pval")
 
-pairs(~si_pval+sa_pval+k_pval, pvaluesx, main="Scatterplot matrix of Q values")
+pairs(~si_pval+sa_pval+k_pval, pvaluesx, main="Scatterplot matrix of P values")
 
 graph <- pvaluesx %>% 
             gather(category, value)
@@ -106,6 +109,44 @@ ggplot(graph, aes(x = value, fill = category)) +
 
 # STEP B: Difference between methods (ST-HT comparison)
 ###################################################################################################
+si100 <- stringtie
+si100$feature = NULL
+si100 <- si100[order(si100$pval, decreasing=TRUE), ]
+si100 <- head(si100,100)
+si100$fc = NULL
+
+sa100 <- star
+sa100$baseMean = NULL
+sa100$log2FoldChange = NULL
+sa100$lfcSE = NULL
+sa100$stat = NULL
+sa100 <- sa100[order(sa100$pvalue, decreasing=TRUE), ]
+sa100 <- head(sa100,100)
+
+k100 <- data.frame(kallisto$gene_id, kallisto$pval, kallisto$qval)
+names(k100) = c("id", "pval", "qval")
+k100 <- k100[order(k100$pval, decreasing=TRUE), ]
+k100 <- head(k100,100)
+
+ss <- merge(si100, sa100, by.x="id", by.y="X")
+
+
+#stsak <- merge(stsa, kallisto, by.x="id", by.y="gene_id")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #Slopegraph kallisto vs star
 slope.ksa <- data.frame("id" = stsak$id,
                         "k_b" = stsak$k_b,
