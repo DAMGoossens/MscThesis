@@ -1,0 +1,77 @@
+#Msc Thesis Dymphy
+#This script entails the second pipeline. This is not a script that can be completly executed from unix. 
+
+###################################################################################################
+# Running STAR on Unix
+###################################################################################################
+#Generating genome (.../o_STAR/genome)
+../progs/STAR-2.5.2b/bin/Linux_x86_64/STAR --runMode genomeGenerate --genomeDir ../input --genomeFastaFiles ../input/Arabidopsis_thaliana.TAIR10.29.dna.genome.fa --sjdbGTFfile ../../Arab_zCHR.gtf
+
+#Mapping reads (o_STAR)
+progs/STAR-2.5.2b/bin/Linux_x86_64/STAR --genomeDir input --readFilesIn input/1657_A_run263.fastq.gz --runThreadN 2 --sjdbGTFfile ../Arab_zCHR.gtf --outFileNamePrefix 1657_A/ --readFilesCommand zcat --quantMode GeneCounts
+progs/STAR-2.5.2b/bin/Linux_x86_64/STAR --genomeDir input --readFilesIn input/1657_B_run263.fastq.gz --runThreadN 2 --sjdbGTFfile ../Arab_zCHR.gtf --outFileNamePrefix 1657_B/ --readFilesCommand zcat --quantMode GeneCounts
+progs/STAR-2.5.2b/bin/Linux_x86_64/STAR --genomeDir input --readFilesIn input/1657_C_run263.fastq.gz --runThreadN 2 --sjdbGTFfile ../Arab_zCHR.gtf --outFileNamePrefix 1657_C/ --readFilesCommand zcat --quantMode GeneCounts
+progs/STAR-2.5.2b/bin/Linux_x86_64/STAR --genomeDir input --readFilesIn input/1657_G_run263.fastq.gz --runThreadN 2 --sjdbGTFfile ../Arab_zCHR.gtf --outFileNamePrefix 1657_G/ --readFilesCommand zcat --quantMode GeneCounts
+progs/STAR-2.5.2b/bin/Linux_x86_64/STAR --genomeDir input --readFilesIn input/1657_H_run263.fastq.gz --runThreadN 2 --sjdbGTFfile ../Arab_zCHR.gtf --outFileNamePrefix 1657_H/ --readFilesCommand zcat --quantMode GeneCounts
+progs/STAR-2.5.2b/bin/Linux_x86_64/STAR --genomeDir input --readFilesIn input/1657_I_run263.fastq.gz --runThreadN 2 --sjdbGTFfile ../Arab_zCHR.gtf --outFileNamePrefix 1657_I/ --readFilesCommand zcat --quantMode GeneCounts
+progs/STAR-2.5.2b/bin/Linux_x86_64/STAR --genomeDir input --readFilesIn input/1657_M_run263.fastq.gz --runThreadN 2 --sjdbGTFfile ../Arab_zCHR.gtf --outFileNamePrefix 1657_M/ --readFilesCommand zcat --quantMode GeneCounts
+progs/STAR-2.5.2b/bin/Linux_x86_64/STAR --genomeDir input --readFilesIn input/1657_N_run263.fastq.gz --runThreadN 2 --sjdbGTFfile ../Arab_zCHR.gtf --outFileNamePrefix 1657_N/ --readFilesCommand zcat --quantMode GeneCounts
+progs/STAR-2.5.2b/bin/Linux_x86_64/STAR --genomeDir input --readFilesIn input/1657_O_run263.fastq.gz --runThreadN 2 --sjdbGTFfile ../Arab_zCHR.gtf --outFileNamePrefix 1657_O/ --readFilesCommand zcat --quantMode GeneCounts
+progs/STAR-2.5.2b/bin/Linux_x86_64/STAR --genomeDir input --readFilesIn input/1657_S_run263.fastq.gz --runThreadN 2 --sjdbGTFfile ../Arab_zCHR.gtf --outFileNamePrefix 1657_S/ --readFilesCommand zcat --quantMode GeneCounts
+progs/STAR-2.5.2b/bin/Linux_x86_64/STAR --genomeDir input --readFilesIn input/1657_T_run263.fastq.gz --runThreadN 2 --sjdbGTFfile ../Arab_zCHR.gtf --outFileNamePrefix 1657_T/ --readFilesCommand zcat --quantMode GeneCounts
+progs/STAR-2.5.2b/bin/Linux_x86_64/STAR --genomeDir input --readFilesIn input/1657_U_run263.fastq.gz --runThreadN 2 --sjdbGTFfile ../Arab_zCHR.gtf --outFileNamePrefix 1657_U/ --readFilesCommand zcat --quantMode GeneCounts
+
+###################################################################################################
+# Running DESeq2 in R
+###################################################################################################
+rm(list=ls(all=TRUE))
+
+source("http://bioconductor.org/biocLite.R")
+biocLite("DESeq2")
+library(DESeq2)
+
+count_data = read.csv("star_gene_count_matrix.csv", row.names=1,header=TRUE)
+tail(count_data)
+#count_data = count_data[-nrow(count_data),]                 #sloppy writing, needs fixing - only necessary for STAR data
+#count_data = count_data[-nrow(count_data),]
+#count_data = count_data[-nrow(count_data),]
+#count_data = count_data[-nrow(count_data),]
+
+#File statistics
+dim(count_data)
+colnames(count_data)
+summary(count_data)
+
+#Filtering
+mx = apply(count_data, 1, max )
+length(mx)
+count_data = count_data[ mx > 10, ]
+dim(count_data)
+
+#Creating a DESeq2 data object
+condition = factor(c("ST", "ST", "ST", "HT", "HT", "HT"))
+condition
+col_data = DataFrame(condition)
+dds = DESeqDataSetFromMatrix(count_data, col_data, ~condition)
+
+dds = estimateSizeFactors(dds)      #calculating linear correciton factors
+sizeFactors(dds)
+
+#Clustering
+rld = rlog(dds)                      #transforming the counts
+plot(density(assay(rld)[,1]), main="log counts")
+
+dists = dist(t(assay(rld)))
+plot(hclust(dists))
+
+#Calculating and checking dispersions 
+dds = estimateDispersions(dds)
+plotDispEsts(dds)
+
+#DE
+dds = nbinomWaldTest(dds)
+res = results(dds)
+head(res)
+#res$padj = ifelse(is.na(res$padj), 1, res$padj)      #setting NA's to 1
+
+write.csv(res, "star_STHT.csv", row.names=TRUE)
