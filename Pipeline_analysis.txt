@@ -12,8 +12,10 @@ setwd("/mnt/scratch/gooss032/o_analysis")
 source("http://www.bioconductor.org/biocLite.R")
 biocLite("ggplot2")
 install.packages("tidyverse")
+install.packages("VennDiagram")
 library(ggplot2)
 library(tidyverse)
+library(VennDiagram)
 
 #reading in all results
 #stringtie <- read.csv("stringtie_gene_count_matrix.csv", header=TRUE)
@@ -116,52 +118,65 @@ pairs(~log(sa_ST1)+log(sa_ST2)+log(sa_ST3)+log(sa_HT1)+log(sa_HT2)+log(sa_HT3), 
 
 # STEP B: Difference between methods (ST-HT comparison)
 ###################################################################################################
+#Venn diagram
 si100 <- stringtie
-si100$feature = NULL
-si100 <- si100[order(si100$pval, decreasing=TRUE), ]
+si100 <- si100[order(si100$pvalue, decreasing=TRUE), ]
 si100 <- head(si100,100)
-si100$fc = NULL
+si100 <- data.frame(si100$X, si100$pvalue)
+colnames(si100) = c("id", "pval")
 
 sa100 <- star
-sa100$baseMean = NULL
-sa100$log2FoldChange = NULL
-sa100$lfcSE = NULL
-sa100$stat = NULL
-sa100 <- sa100[order(sa100$pvalue, decreasing=TRUE), ]
+sa100 <- sa100[order(sa100$res.pvalue, decreasing=TRUE), ]
 sa100 <- head(sa100,100)
+sa100 <- data.frame(sa100$id, sa100$res.pvalue)
+colnames(sa100) = c("id", "pval")
 
-k100 <- data.frame(kallisto$gene_id, kallisto$pval, kallisto$qval)
-names(k100) = c("id", "pval", "qval")
-k100 <- k100[order(k100$pval, decreasing=TRUE), ]
+k100 <- kallisto
+k100 <- k100[order(k100$pvalue, decreasing=TRUE), ]
 k100 <- head(k100,100)
+k100 <- data.frame(k100$X, k100$pvalue)
+colnames(k100) = c("id", "pval")
 
-ss <- merge(si100, sa100, by.x="id", by.y="X")
+venn.diagram(
+x = list(si100, sa100, k100),
+category.names = c("Stringtie" , "STAR" , "Kallisto"),
+filename = 'venn_diagram_top_100.png',
+        output = TRUE ,
+        imagetype="png" ,
+        height = 480 , 
+        width = 480 , 
+        resolution = 300,
+        compression = "lzw",
+        lwd = 2,
+        lty = 'blank',
+        fill = c('yellow', 'purple', 'green'),
+        cex = 1,
+        fontface = "bold",
+        fontfamily = "sans",
+        cat.cex = 0.6,
+        cat.fontface = "bold",
+        cat.default.pos = "outer",
+        cat.pos = c(-27, 27, 135),
+        cat.dist = c(0.055, 0.055, 0.085),
+        cat.fontfamily = "sans",
+        rotation = 1
+        )
+
+#Slopegraph kallisto vs star
 
 
-#stsak <- merge(stsa, kallisto, by.x="id", by.y="gene_id")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+library(scales)
 
 #Slopegraph kallisto vs star
 slope.ksa <- data.frame("id" = stsak$id,
-                        "k_b" = stsak$k_b,
-                        "sa_fc" = stsak$sa_2tolog2fc)
+                        "k_pval" = stsak$k_pval,
+                        "sa_pval" = stsak$sa_pval)
 
-l11 <- paste(slope.ksa$id, comma_format()(round(slope.ksa$k_b)), sep="\n")
-l12 <- paste(slope.ksa$id, comma_format()(round(slope.ksa$sa_fc)), sep="\n")
-p <- ggplot(slope.ksa) + geom_segment(aes(x=0,xend=0.05,y=k_b,yend=sa_fc), size=0.75)
+l11 <- paste(slope.ksa$id, comma_format()(round(slope.ksa$k_pval)), sep="\n")
+l12 <- paste(slope.ksa$id, comma_format()(round(slope.ksa$sa_pval)), sep="\n")
+p <- ggplot(slope.ksa) + geom_segment(aes(x=0,xend=0.05,y=k_pval,yend=sa_pval), size=0.75)
 
 p<-p + theme(panel.background = element_blank())
 p<-p + theme(panel.grid=element_blank())
@@ -169,8 +184,11 @@ p<-p + theme(axis.ticks=element_blank())
 p<-p + theme(axis.text=element_blank())
 p<-p + theme(panel.border=element_blank())
 
-p<-p + xlab("Slopegraph Kallisto vs STAR: b vs fc") + ylab("")
+p<-p + xlab("Slopegraph Kallisto vs STAR - pvalues") + ylab("")
 p
+
+#####TOP 100 NEMEN!
+#####ANDERS TOP 1000?
 
 #Slopegraph stringtie vs star
 slope.sisa <- data.frame("id" = sisak$id,
@@ -209,38 +227,3 @@ r<-r + theme(panel.border=element_blank())
 r<-r + xlab("Slopegraph Stringtie vs STAR") + ylab("")
 r
 
-#Venndiagram
-library(VennDiagram)
- 
-#Then generate 3 sets of words.There I generate 3 times 200 SNPs names.
-SNP_pop_1=paste(rep("SNP_" , 200) , sample(c(1:1000) , 200 , replace=F) , sep="")
-SNP_pop_2=paste(rep("SNP_" , 200) , sample(c(1:1000) , 200 , replace=F) , sep="")
-SNP_pop_3=paste(rep("SNP_" , 200) , sample(c(1:1000) , 200 , replace=F) , sep="")
- 
-#The goal of the Venn Diagram is to count how many words are common between SNP_pop_1 and SNP_pop_2, between SNP_pop_1 and SNP_pop_3 and so on...
-#The venn.diagram function do it automatically and draw it! (you will get a png file in your current working directory)
- 
-venn.diagram(
-x = list(SNP_pop_1 , SNP_pop_2 , SNP_pop_3),
-category.names = c("SNP pop 1" , "SNP pop 2 " , "SNP pop 3"),
-filename = '#14_venn_diagramm.png',
-        output = TRUE ,
-        imagetype="png" ,
-        height = 480 , 
-        width = 480 , 
-        resolution = 300,
-        compression = "lzw",
-        lwd = 2,
-        lty = 'blank',
-        fill = c('yellow', 'purple', 'green'),
-        cex = 1,
-        fontface = "bold",
-        fontfamily = "sans",
-        cat.cex = 0.6,
-        cat.fontface = "bold",
-        cat.default.pos = "outer",
-        cat.pos = c(-27, 27, 135),
-        cat.dist = c(0.055, 0.055, 0.085),
-        cat.fontfamily = "sans",
-        rotation = 1
-        )
