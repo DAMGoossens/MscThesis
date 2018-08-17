@@ -120,27 +120,46 @@ pairs(~log(sa_ST1)+log(sa_ST2)+log(sa_ST3)+log(sa_HT1)+log(sa_HT2)+log(sa_HT3), 
 ###################################################################################################
 #Venn diagram
 si100 <- stringtie
-si100 <- si100[order(si100$pvalue, decreasing=TRUE), ]
+si100 <- si100[order(si100$pvalue, decreasing=FALSE), ]
 si100 <- head(si100,100)
 si100 <- data.frame(si100$X, si100$pvalue)
 colnames(si100) = c("id", "pval")
 
 sa100 <- star
-sa100 <- sa100[order(sa100$res.pvalue, decreasing=TRUE), ]
+sa100 <- sa100[order(sa100$res.pvalue, decreasing=FALSE), ]
 sa100 <- head(sa100,100)
 sa100 <- data.frame(sa100$id, sa100$res.pvalue)
 colnames(sa100) = c("id", "pval")
 
 k100 <- kallisto
-k100 <- k100[order(k100$pvalue, decreasing=TRUE), ]
+k100 <- k100[order(k100$pvalue, decreasing=FALSE), ]
 k100 <- head(k100,100)
 k100 <- data.frame(k100$X, k100$pvalue)
 colnames(k100) = c("id", "pval")
 
+s_stringtie <- subset(stringtie, stringtie$pvalue < 0.05)
+s_s <- data.frame(s_stringtie$X, s_stringtie$pvalue)
+colnames(s_s) = c("id", "pvalue")
+
+s_star <- subset(star, star$res.pvalue < 0.05)
+s_sa <- data.frame(s_star$id, s_star$res.pvalue)
+colnames(s_sa) = c("id", "pvalue")
+
+s_kallisto <- subset(kallisto, kallisto$pvalue < 0.05)
+s_k <- data.frame(s_kallisto$X, s_kallisto$pvalue)
+colnames(s_k) = c("id", "pvalue")
+
+ss_ss <- merge(s_s, s_sa, by.x="id", by.y="id")
+colnames(ss_ss) = c("id", "stringtie", "star")
+ss_ss_k <- merge(ss_ss, s_k, by.x="id", by.y="id")
+colnames(ss_ss_k) = c("id", "stringtie", "star", "kallisto")
+write.csv(ss_ss_k, "significant_transcripts_all_methods.csv", row.names=TRUE)
+
+
 venn.diagram(
-x = list(si100, sa100, k100),
+x = list(s_s, s_sa, s_k),
 category.names = c("Stringtie" , "STAR" , "Kallisto"),
-filename = 'venn_diagram_top_100.png',
+filename = 'again.png',
         output = TRUE ,
         imagetype="png" ,
         height = 480 , 
