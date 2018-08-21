@@ -153,18 +153,10 @@ pheno_data = read.csv("ballgown/samplesR.csv", header=TRUE)
 bg = ballgown(dataDir = "ballgown", samplePattern="1657_", pData=pheno_data)
 
 #Get expression levels of gene and transcript level
-head(gexpr(bg), 2)
-head(texpr(bg), 2)
-
-#Testing for PCA/FPKM
-diffEx_transcripts = stattest(bg, feature="transcript", covariate="condition", getFC=TRUE, meas="FPKM", libadjust = FALSE)
 genes.fpkm = gexpr(bg)
-genes.fpkm.log = log2(genes.fpkm+1)
-transcripts.fpkm = texpr(bg)
-transcripts.fpkm.log= log2(transcripts.fpkm+1)
+trans.fpkm = texpr(bg)
 
 #testing statistical significance
-bg_filt = subset(bg,"rowVars(texpr(bg)) >1",genomesubset=FALSE)
 results_transcripts = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE)     #only applicable for comparing two groups
 results_genes = stattest(bg, feature="gene", meas="FPKM", covariate="condition", getFC=TRUE)
 results_transcripts = data.frame(geneNames=ballgown:geneNames(bg),geneIDs=ballgown:geneIDs(bg),results_transcripts)   
@@ -173,4 +165,20 @@ results_transcripts = data.frame(geneNames=ballgown:geneNames(bg),geneIDs=ballgo
 results_transcripts = arrange(results_transcripts,pval)
 results_genes = arrange(results_genes,pval)
 write.csv(results_transcripts,"stringtie_transcript_results.csv",row.names=FALSE)         #alternatively names for stht comparison: stringtie_transcript_stht.csv
-write.csv(results_genes,"stringtie_genes_results.csv",row.names=FALSE)           #alternatively names for stht comparison: stringtie_genes_stht.csv
+write.csv(results_genes,"stringtie_genes_results.csv",row.names=FALSE)           #alternatively names for sht comparison: stringtie_genes_stht.csv
+
+#Testing different libadj
+libadj.true = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE)
+libadj.false = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadjust=FALSE)
+l.sum = apply(genes.fpkm, gexpr, sum)
+libadj.sum = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadj=mean(l.sum)/l.sum)
+l.quantile = apply(genes.fpkm, gexpr, quantile)
+libadj.quantile = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadj=mean(l.quantile/l.quantile)
+l.sum.n0 = apply(genes.fpkm, gexpr, sum)
+l.sum.n0 = fun.zero.omit(l.sum.n0)
+libadj.sum.n0 = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadj=mean(l.sum.n0/l.sum.n0)
+l.quantile.n0 = apply(genes.fpkm, gexpr, quantile)
+l.quantile.n0 = fun.zero.omit(l.quantile.n0)
+libadj.quantile.n0 = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadj=mean(l.quantile.n0/l.quantile.n0)
+
+pairs(libadj.true+libadj.false+libadj.sum+libadj.quantile+libadj.sum.n0+libadj.quantile.n0)
