@@ -165,20 +165,28 @@ results_transcripts = data.frame(geneNames=ballgown:geneNames(bg),geneIDs=ballgo
 results_transcripts = arrange(results_transcripts,pval)
 results_genes = arrange(results_genes,pval)
 write.csv(results_transcripts,"stringtie_transcript_results.csv",row.names=FALSE)         #alternatively names for stht comparison: stringtie_transcript_stht.csv
-write.csv(results_genes,"stringtie_genes_results.csv",row.names=FALSE)           #alternatively names for sht comparison: stringtie_genes_stht.csv
+write.csv(results_genes,"stringtie_genes_results.csv",row.names=FALSE)           #alternatively names for stht comparison: stringtie_genes_stht.csv
 
 #Testing different libadj
 libadj.true = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE)
 libadj.false = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadjust=FALSE)
-l.sum = apply(genes.fpkm, gexpr, sum)
-libadj.sum = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadj=mean(l.sum)/l.sum)
-l.quantile = apply(genes.fpkm, gexpr, quantile)
-libadj.quantile = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadj=mean(l.quantile/l.quantile)
-l.sum.n0 = apply(genes.fpkm, gexpr, sum)
-l.sum.n0 = fun.zero.omit(l.sum.n0)
-libadj.sum.n0 = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadj=mean(l.sum.n0/l.sum.n0)
-l.quantile.n0 = apply(genes.fpkm, gexpr, quantile)
-l.quantile.n0 = fun.zero.omit(l.quantile.n0)
-libadj.quantile.n0 = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadj=mean(l.quantile.n0/l.quantile.n0)
 
-pairs(libadj.true+libadj.false+libadj.sum+libadj.quantile+libadj.sum.n0+libadj.quantile.n0)
+l.sum = apply(genes.fpkm, 2, sum)
+libadj.sum = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadj=mean(l.sum)/l.sum)
+
+l.quantile = apply(genes.fpkm, 2, quantile, prob=0.75)
+libadj.quantile = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadj=mean(l.quantile)/l.quantile)
+
+no.zero <- genes.fpkm[-row(genes.fpkm)[genes.fpkm == 0],]
+
+l.sum.n0 = apply(no.zero, 2, sum)
+libadj.sum.n0 = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadj=mean(l.sum.n0)/l.sum.n0)
+
+l.quantile.n0 = apply(no.zero, 2, quantile, prob=0.75)
+libadj.quantile.n0 = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadj=mean(l.quantile.n0)/l.quantile.n0)
+
+lib_data <- data.frame(libadj.true$pval, libadj.false$pval, libadj.sum$pval, libadj.quantile$pval, libadj.sum.n0$pval, libadj.quantile.n0$pval)
+colnames(lib_data) = c("true", "false", "sum", "quantile", "sumn0", "quantilen0")
+
+pairs(~true+false+sum+quantile+sumn0+quantilen0, data=lib_data)
+cor(lib_data)
