@@ -53,6 +53,7 @@ library(VennDiagram)
 
 sikasa <- read.csv("counts_all_methods.csv", header=TRUE)
 stsak <- read.csv("table_all_methods.csv", header=TRUE)
+stsak2 <- read.csv("table_optie2.csv", header=TRUE)
 
 ###################################################################################################
 
@@ -61,19 +62,23 @@ stsak <- read.csv("table_all_methods.csv", header=TRUE)
 #Evaluating counts 
 sikasa$id <- NULL
 sikasa <- scale(sikasa)
+stsak$id <- NULL
+stsak <- scale(stsak)
+stsak2$id <- NULL
+stsak2 <- scale(stsak2)
 
 ###Evaluating the counts
 #Boxplot
 boxplot(sikasa, main = "Counts by sample")
 boxplot(sikasa, main = "Counts by sample", ylim = c(0,500), las=2)
-
-#Boxplot of log counts
 log_sikasa <- log(sikasa+1)
 boxplot(log_sikasa, main = "Log counts by sample", ylim = c(0,0.5), las=2)
 
 #Hiarchical clustering
-fit <- hclust(as.dist(1-cor(sikasa), method="pearson")), method="complete")
+fit <- hclust(as.dist(1-cor(sikasa, method="pearson")), method="complete")
 plot(fit)
+fit2 <- hclust(as.dist(1-cor(sikasa, method="spearman")), method="complete")
+plot(fit2)
 
 #PCA
 count.pca <- prcomp(t(sikasa), center = TRUE, scale. = TRUE)
@@ -89,7 +94,6 @@ pairs(~log(si_HT1)+log(k_HT1)+log(sa_HT1), data=sikasa, main="Scatterplot matrix
 pairs(~log(si_HT1)+log(si_HT2)+log(si_HT3)+log(k_HT1)+log(k_HT2)+log(k_HT3)+log(sa_HT1)+log(sa_HT2)+log(sa_HT3), data=sikasa, main="Scatterplot matrix of HT samples")
 
 #Comparing fc vs b values
-stsak <- scale(stsak)
 fcb <- data.frame(stsak$si_fc, stsak$k_b, stsak$sa_l2FC)
 names(fcb) = c("si_fc", "k_b", "sa_fc")
 fcb$si_fc <- log2(fcb$si_fc)
@@ -97,10 +101,18 @@ fcb$k_b <- 2^fcb$k_b
 pairs(~si_fc+k_b+sa_fc, fcb, main = "Scatterplot matrix fc v b values")
 
 #Evaluating pvalues
-pvalues <- data.frame(stsak$id, stsak$si_pval, stsak$sa_pvalue, stsak$k_pval)
-pvaluesx <- pvalues
+pvaluesx <- data.frame(stsak$id, stsak$si_pval, stsak$sa_pvalue, stsak$k_pval)
 pvaluesx$stsak.id = NULL
 names(pvaluesx) = c("si_pval", "sa_pval", "k_pval")
+
+cor_pvaluesx <- cor(pvaluesx)
+
+pvaluesx2 <- data.frame(stsak2$id, stsak2$si_pval, stsak2$sa_pvalue, stsak2$k_pval)
+pvaluesx2$stsak.id = NULL
+names(pvaluesx2) = c("si_pval", "sa_pval", "k_pval")
+
+cor_pvaluesx2 <- cor(pvaluesx2)
+
 
 pairs(~si_pval+sa_pval+k_pval, pvaluesx, main="Scatterplot matrix of P values")
 
