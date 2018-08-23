@@ -168,7 +168,7 @@ write.csv(results_transcripts,"stringtie_transcript_results.csv",row.names=FALSE
 write.csv(results_genes,"stringtie_genes_results.csv",row.names=FALSE)           #alternatively names for stht comparison: stringtie_genes_stht.csv
 
 #Testing different libadj
-libadj.true = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE)
+libadj.default = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE)
 libadj.false = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadjust=FALSE)
 
 l.sum = apply(genes.fpkm, 2, sum)
@@ -185,8 +185,8 @@ libadj.sum.n0 = stattest(bg, feature="transcript", meas="FPKM", covariate="condi
 l.quantile.n0 = apply(no.zero, 2, quantile, prob=0.75)
 libadj.quantile.n0 = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE, libadj=mean(l.quantile.n0)/l.quantile.n0)
 
-lib_data <- data.frame(libadj.true$pval, libadj.false$pval, libadj.sum$pval, libadj.quantile$pval, libadj.sum.n0$pval, libadj.quantile.n0$pval)
-colnames(lib_data) = c("true", "false", "sum", "quantile", "sumn0", "quantilen0")
+lib_data <- data.frame(libadj.default$pval, libadj.false$pval, libadj.sum$pval, libadj.quantile$pval, libadj.sum.n0$pval, libadj.quantile.n0$pval)
+colnames(lib_data) = c("default", "false", "sum", "quantile", "sumn0", "quantilen0")
 
-pairs(~true+false+sum+quantile+sumn0+quantilen0, data=lib_data)
+pairs(~default+false+sum+quantile+sumn0+quantilen0, data=lib_data)
 cor(lib_data)
