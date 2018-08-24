@@ -105,13 +105,18 @@ cor.fcb <- cor(fcb.filtered)
 
 #Evaluating pvalues
 pvaluesx <- data.frame(stsak$id, stsak$si_pval, stsak$sa_pvalue, stsak$k_pval)
+write.csv (pvaluesx, "pvaluesx.csv", row.names=TRUE)
 pvaluesx$stsak.id = NULL
 names(pvaluesx) = c("si_pval", "sa_pval", "k_pval")
 
 sum(row.has.na <- apply(pvaluesx, 1, function(x){any(is.na(x))}))  #checking amount of NA
 pvalues.filtered <- pvaluesx[!row.has.na,]
 
-cor_pvaluesx <- cor(pvaluesx.filtered)
+pvaluesx <-pvaluesx[complete.cases(pvaluesx),]
+
+
+cor_pvaluesx <- cor(pvalues.filtered)
+pairs(~si_pval+sa_pval+k_pval, pvalues.filtered, main="Scatterplot matrix of P values")
 
 pvaluesx2 <- data.frame(stsak2$id, stsak2$si_pval, stsak2$sa_pval, stsak2$k_pval)
 pvaluesx2$stsak2.id = NULL
@@ -122,7 +127,7 @@ pvalues2.filtered <- pvaluesx2[!row.has.na,]
 
 cor_pvalues2 <- cor(pvalues2.filtered)
 
-pairs(~si_pval+sa_pval+k_pval, pvaluesx, main="Scatterplot matrix of P values")
+pairs(~si_pval+sa_pval+k_pval, pvaluesx2, main="Scatterplot matrix of P values")
 
 graph <- pvaluesx %>% 
             gather(category, value)

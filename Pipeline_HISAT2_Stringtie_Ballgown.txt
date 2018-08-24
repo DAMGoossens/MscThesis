@@ -188,5 +188,6 @@ libadj.quantile.n0 = stattest(bg, feature="transcript", meas="FPKM", covariate="
 lib_data <- data.frame(libadj.default$pval, libadj.false$pval, libadj.sum$pval, libadj.quantile$pval, libadj.sum.n0$pval, libadj.quantile.n0$pval)
 colnames(lib_data) = c("default", "false", "sum", "quantile", "sumn0", "quantilen0")
 
-pairs(~default+false+sum+quantile+sumn0+quantilen0, data=lib_data)
+lib_data2 <- lib_data[complete.cases(lib_data),]
+pairs(~default+false+sum+quantile+sumn0+quantilen0, data=lib_data2)
 cor(lib_data)
