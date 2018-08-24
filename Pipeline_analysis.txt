@@ -12,10 +12,10 @@ setwd("/mnt/scratch/gooss032/o_analysis")
 source("http://www.bioconductor.org/biocLite.R")
 biocLite("ggplot2")
 install.packages("tidyverse")
-install.packages("VennDiagram")
+install.packages("scales")
 library(ggplot2)
 library(tidyverse)
-library(VennDiagram)
+library(scales)
 
 #reading in all results
 #stringtie <- read.csv("stringtie_gene_count_matrix.csv", header=TRUE)
@@ -99,20 +99,28 @@ names(fcb) = c("si_fc", "k_b", "sa_fc")
 fcb$si_fc <- log2(fcb$si_fc)
 fcb$k_b <- 2^fcb$k_b
 pairs(~si_fc+k_b+sa_fc, fcb, main = "Scatterplot matrix fc v b values")
+sum(row.has.na <- apply(fcb, 1, function(x){any(is.na(x))}))  #checking amount of NA
+fcb.filtered <- fcb[!row.has.na,]
+cor.fcb <- cor(fcb.filtered)
 
 #Evaluating pvalues
 pvaluesx <- data.frame(stsak$id, stsak$si_pval, stsak$sa_pvalue, stsak$k_pval)
 pvaluesx$stsak.id = NULL
 names(pvaluesx) = c("si_pval", "sa_pval", "k_pval")
 
-cor_pvaluesx <- cor(pvaluesx)
+sum(row.has.na <- apply(pvaluesx, 1, function(x){any(is.na(x))}))  #checking amount of NA
+pvalues.filtered <- pvaluesx[!row.has.na,]
 
-pvaluesx2 <- data.frame(stsak2$id, stsak2$si_pval, stsak2$sa_pvalue, stsak2$k_pval)
-pvaluesx2$stsak.id = NULL
+cor_pvaluesx <- cor(pvaluesx.filtered)
+
+pvaluesx2 <- data.frame(stsak2$id, stsak2$si_pval, stsak2$sa_pval, stsak2$k_pval)
+pvaluesx2$stsak2.id = NULL
 names(pvaluesx2) = c("si_pval", "sa_pval", "k_pval")
 
-cor_pvaluesx2 <- cor(pvaluesx2)
+sum(row.has.na <- apply(pvaluesx2, 1, function(x){any(is.na(x))}))  #checking amount of NA
+pvalues2.filtered <- pvaluesx2[!row.has.na,]
 
+cor_pvalues2 <- cor(pvalues2.filtered)
 
 pairs(~si_pval+sa_pval+k_pval, pvaluesx, main="Scatterplot matrix of P values")
 
@@ -131,83 +139,37 @@ pairs(~log(sa_ST1)+log(sa_ST2)+log(sa_ST3)+log(sa_HT1)+log(sa_HT2)+log(sa_HT3), 
 # STEP B: Difference between methods (ST-HT comparison)
 ###################################################################################################
 #Venn diagram
-si100 <- stringtie
-si100 <- si100[order(si100$pvalue, decreasing=FALSE), ]
-si100 <- head(si100,100)
-si100 <- data.frame(si100$X, si100$pvalue)
-colnames(si100) = c("id", "pval")
+si <- stringtie
+si <- data.frame(si$X, si$pval)
+si <- si[order(si$pval, decreasing=FALSE), ]
+colnames(si) = c("id", "pval")
+si100 <- head(si,100)
+si250 <- head(si,250)
+si500 <- head(si,500)
 
-sa100 <- star
-sa100 <- sa100[order(sa100$res.pvalue, decreasing=FALSE), ]
-sa100 <- head(sa100,100)
-sa100 <- data.frame(sa100$id, sa100$res.pvalue)
-colnames(sa100) = c("id", "pval")
+sa <- star
+sa <- data.frame(sa$id, sa$res.pvalue)
+colnames(sa) = c("id", "pval")
+sa <- sa[order(sa$pval, decreasing=FALSE), ]
+sa100 <- head(sa,100)
+sa250 <- head(sa,250)
+sa500 <- head(sa,500)
 
-k100 <- kallisto
-k100 <- k100[order(k100$pvalue, decreasing=FALSE), ]
-k100 <- head(k100,100)
-k100 <- data.frame(k100$X, k100$pvalue)
-colnames(k100) = c("id", "pval")
-
-s_stringtie <- subset(stringtie, stringtie$pvalue < 0.05)
-s_s <- data.frame(s_stringtie$X, s_stringtie$pvalue)
-colnames(s_s) = c("id", "pvalue")
-
-s_star <- subset(star, star$res.pvalue < 0.05)
-s_sa <- data.frame(s_star$id, s_star$res.pvalue)
-colnames(s_sa) = c("id", "pvalue")
-
-s_kallisto <- subset(kallisto, kallisto$pvalue < 0.05)
-s_k <- data.frame(s_kallisto$X, s_kallisto$pvalue)
-colnames(s_k) = c("id", "pvalue")
-
-ss_ss <- merge(s_s, s_sa, by.x="id", by.y="id")
-colnames(ss_ss) = c("id", "stringtie", "star")
-ss_ss_k <- merge(ss_ss, s_k, by.x="id", by.y="id")
-colnames(ss_ss_k) = c("id", "stringtie", "star", "kallisto")
-write.csv(ss_ss_k, "significant_transcripts_all_methods.csv", row.names=TRUE)
-
-
-venn.diagram(
-x = list(s_s, s_sa, s_k),
-category.names = c("Stringtie" , "STAR" , "Kallisto"),
-filename = 'again.png',
-        output = TRUE ,
-        imagetype="png" ,
-        height = 480 , 
-        width = 480 , 
-        resolution = 300,
-        compression = "lzw",
-        lwd = 2,
-        lty = 'blank',
-        fill = c('yellow', 'purple', 'green'),
-        cex = 1,
-        fontface = "bold",
-        fontfamily = "sans",
-        cat.cex = 0.6,
-        cat.fontface = "bold",
-        cat.default.pos = "outer",
-        cat.pos = c(-27, 27, 135),
-        cat.dist = c(0.055, 0.055, 0.085),
-        cat.fontfamily = "sans",
-        rotation = 1
-        )
+k <- kallisto
+k <- data.frame(k$gene_id, k$pval)
+colnames(k) = c("id", "pval")
+k <- k[order(k$pval, decreasing=FALSE), ]
+k100 <- head(k,100)
+k250 <- head(k,250)
 
 #Slopegraph kallisto vs star
+slope.ksa <- merge(k, sa, by.x="id", by.y="id")
+colnames(slope.ksa) = c("id", "kallisto", "star")
+slope.ksa <- head(slope.ksa, 100)
 
-
-
-
-library(scales)
-
-#Slopegraph kallisto vs star
-slope.ksa <- data.frame("id" = stsak$id,
-                        "k_pval" = stsak$k_pval,
-                        "sa_pval" = stsak$sa_pval)
-
-l11 <- paste(slope.ksa$id, comma_format()(round(slope.ksa$k_pval)), sep="\n")
-l12 <- paste(slope.ksa$id, comma_format()(round(slope.ksa$sa_pval)), sep="\n")
-p <- ggplot(slope.ksa) + geom_segment(aes(x=0,xend=0.05,y=k_pval,yend=sa_pval), size=0.75)
+l11 <- paste(slope.ksa$id, comma_format()(round(slope.ksa$kallisto)), sep="\n")
+l12 <- paste(slope.ksa$id, comma_format()(round(slope.ksa$star)), sep="\n")
+p <- ggplot(slope.ksa) + geom_segment(aes(x=0,xend=0.05,y=kallisto,yend=star), size=0.75)
 
 p<-p + theme(panel.background = element_blank())
 p<-p + theme(panel.grid=element_blank())
@@ -215,20 +177,17 @@ p<-p + theme(axis.ticks=element_blank())
 p<-p + theme(axis.text=element_blank())
 p<-p + theme(panel.border=element_blank())
 
-p<-p + xlab("Slopegraph Kallisto vs STAR - pvalues") + ylab("")
+p<-p + xlab("Slopegraph Kallisto vs STAR") + ylab("")
 p
 
-#####TOP 100 NEMEN!
-#####ANDERS TOP 1000?
-
 #Slopegraph stringtie vs star
-slope.sisa <- data.frame("id" = sisak$id,
-                        "si_fc" = sisak$si_qval,
-                        "sa_fc" = sisak$sa_2tolog2fc)
+slope.sisa <- merge(si, sa, by.x="id", by.y="id")
+colnames(slope.sisa) = c("id", "stringtie", "star")
+slope.sisa <- head(slope.sisa, 100)
 
-l13 <- paste(slope.sisa$id, comma_format()(round(slope.sisa$si_fc)), sep="\n")
-l14 <- paste(slope.sisa$id, comma_format()(round(slope.sisa$sa_fc)), sep="\n")
-q <- ggplot(slope.sisa) + geom_segment(aes(x=0,xend=0.05,y=si_fc,yend=sa_fc), size=0.75)
+l13 <- paste(slope.sisa$id, comma_format()(round(slope.sisa$stringtie)), sep="\n")
+l14 <- paste(slope.sisa$id, comma_format()(round(slope.sisa$star)), sep="\n")
+q <- ggplot(slope.sisa) + geom_segment(aes(x=0,xend=0.05,y=stringtie,yend=star), size=0.75)
 
 q<-q + theme(panel.background = element_blank())
 q<-q + theme(panel.grid=element_blank())
@@ -239,15 +198,14 @@ q<-q + theme(panel.border=element_blank())
 q<-q + xlab("Slopegraph Stringtie vs STAR") + ylab("")
 q
 
-#Slopegraph stringtie vs star
-slope.sisa <- data.frame("id" = sisak$id,
-                        "si_fc" = sisak$si_qval,
-                        "sa_fc" = sisak$sa_2tolog2fc)
+#Slopegraph stringtie vs kallisto
+slope.sik <- merge(si, k, by.x="id", by.y="id")
+colnames(slope.sik) = c("id", "stringtie", "kallisto")
+slope.sik <- head(slope.sik, 100)
 
-
-l15 <- paste(slope.sisa$id, comma_format()(round(slope.sisa$si_fc)), sep="\n")
-l16 <- paste(slope.sisa$id, comma_format()(round(slope.ksa$sa_fc)), sep="\n")
-r <- ggplot(slope.sisa) + geom_segment(aes(x=0,xend=0.05,y=si_fc,yend=sa_fc), size=0.75)
+l15 <- paste(slope.sik$id, comma_format()(round(slope.sik$stringtie)), sep="\n")
+l16 <- paste(slope.sik$id, comma_format()(round(slope.sik$kallisto)), sep="\n")
+r <- ggplot(slope.sik) + geom_segment(aes(x=0,xend=0.05,y=stringtie,yend=kallisto), size=0.75)
 
 r<-r + theme(panel.background = element_blank())
 r<-r + theme(panel.grid=element_blank())
@@ -255,6 +213,6 @@ r<-r + theme(axis.ticks=element_blank())
 r<-r + theme(axis.text=element_blank())
 r<-r + theme(panel.border=element_blank())
 
-r<-r + xlab("Slopegraph Stringtie vs STAR") + ylab("")
+r<-r + xlab("Slopegraph Stringtie vs Kallisto") + ylab("")
 r
 
