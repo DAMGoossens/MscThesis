@@ -9,99 +9,113 @@ rm(list=ls(all=TRUE))
 
 setwd("/mnt/scratch/gooss032/o_analysis")
 
-source("http://www.bioconductor.org/biocLite.R")
-biocLite("ggplot2")
-install.packages("tidyverse")
-install.packages("scales")
+#source("http://www.bioconductor.org/biocLite.R")
+#biocLite("ggplot2")
+#install.packages("tidyverse")
+#install.packages("scales")
 library(ggplot2)
 library(tidyverse)
 library(scales)
 
-#reading in all results
-#stringtie <- read.csv("stringtie_gene_count_matrix.csv", header=TRUE)
-#kallisto <- read.csv("kallisto_count_STHT.csv", header=TRUE)
-#star <- read.csv("star_gene_count_matrix.csv", header=TRUE)
+#reading in all count results
+#c.stringtie <- read.csv("stringtie_counts.csv", header=TRUE)
+#c.kallisto <- read.csv("kallisto_counts.csv", header=TRUE)
+#c.star <- read.csv("star_gene_count_matrix.csv", header=TRUE)
 
 #create one master count file
-#sika <- merge(stringtie,kallisto, by.x="gene_id", by.y="X")
-#names(sika) <- c("id", "si_ST1", "si_ST2", "si_ST3", "si_HT1", "si_HT2", "si_HT3", 
+#count.data <- merge(c.stringtie,c.kallisto, by.x="gene_id", by.y="X")
+#names(count.data) <- c("id", "si_ST1", "si_ST2", "si_ST3", "si_HT1", "si_HT2", "si_HT3", 
 #                 "k_ST1", "k_ST2", "k_ST3", "k_HT1", "k_HT2", "k_HT3")
-#sikasa <- merge(sika, star, by.x="id", by.y="id")
-#names(sikasa) <- c("id", "si_ST1", "si_ST2", "si_ST3", "si_HT1", "si_HT2", "si_HT3",
+#count.data <- merge(count.data, c.star, by.x="id", by.y="id")
+#names(count.data) <- c("id", "si_ST1", "si_ST2", "si_ST3", "si_HT1", "si_HT2", "si_HT3",
 #                 "k_ST1", "k_ST2", "k_ST3", "k_HT1", "k_HT2", "k_HT3",
 #                 "sa_ST1", "sa_ST2", "sa_ST3", "sa_HT1", "sa_HT2", "sa_HT3")
-#write.csv(sikasa, "counts_all_methods.csv", row.names=FALSE)
+#write.csv(count.data, "table_counts.csv", row.names=FALSE)
 
-#stringtie <- read.csv("stringtie_genes_stht.csv", header=TRUE)
-#star <- read.csv("star_STHT.csv", header=TRUE)
-#star$X <- NULL
-#kallisto <- read.csv("kallisto_stht.csv", header=TRUE)
+#reading in all results from the original packages
+#po.stringtie <- read.csv("stringtie_ballgown_stht.csv", header=TRUE)
+#po.stringtie$feature = NULL
+#po.star <- read.csv("star_deseq_stht.csv", header=TRUE)
+#po.kallisto <- read.csv("kallisto_sleuth_stht.csv", header=TRUE)
+#po.kallisto$X = NULL
+#po.kallisto$num_aggregated_transcripts = NULL
 
-#stsa <- merge(stringtie,star, by.x="id", by.y="id")
-#stsa$feature = NULL
-#colnames(stsak) <- c("id", "si_fc", "si_pval", "si_qval",
+#po.table <- merge(po.stringtie,po.star, by.x="id", by.y="X")
+#colnames(po.table) <- c("id", "si_fc", "si_pval", "si_qval",
 #                    "sa_baseMean", "sa_l2FC", "sa_lfcSE", 
-#                    "sa_stat", "sa_pvalue", "sa_padj")
-#stsak <- merge(stsa, kallisto, by.x="id", by.y="gene_id")
-#stsak$X = NULL
-#stsak$target_id = NULL
-#colnames(stsak) <- c("id", "si_fc", "si_pval", "si_qval", "sa_baseMean",
-#                     "sa_l2FC", "sa_lfcSE", "sa_stat", "sa_pvalue", "sa_padj",
-#                     "k_pval", "k_qval", "k_b", "k_se_b", "k_mean_obs", "k_var_obs",
-#                     "k_tech_var", "k_sigma_sq", "k_smooth_sigma_sq", "k_final_sigma_sq")
-#write.csv(stsak, "table_all_methods_optie.csv", row.names=TRUE)
+#                    "sa_stat", "sa_pval", "sa_padj")
+#po.table <- merge(po.table, po.kallisto, by.x="id", by.y="target_id")
+#colnames(po.table) <- c("id", "si_fc", "si_pval", "si_qval", "sa_baseMean",
+#                     "sa_l2FC", "sa_lfcSE", "sa_stat", "sa_pval", "sa_padj",
+#                     "k_mean_obs", "k_pval", "k_qval")
+#write.csv(po.table, "table_original.csv", row.names=TRUE)
 
-sikasa <- read.csv("counts_all_methods.csv", header=TRUE)
-stsak <- read.csv("table_all_methods.csv", header=TRUE)
-stsak2 <- read.csv("table_optie2.csv", header=TRUE)
+#reading all results from the deseq analysis
+#d.stringtie <- read.csv("stringtie_deseq_stht.csv", header=TRUE)
+#d.star <- read.csv("star_deseq_stht.csv", header=TRUE)
+#d.kallisto <- read.csv("kallisto_deseq_stht.csv", header=TRUE)
+
+#d.table <- merge(d.stringtie,d.star, by.x="X", by.y="X")
+#colnames(d.table) <- c("id", "si_baseMean", "si_l2FC", "si_lfcSE", 
+#                    "si_stat", "si_pval", "si_padj",
+#                    "sa_baseMean", "sa_l2FC", "sa_lfcSE", 
+#                    "sa_stat", "sa_pval", "sa_padj")
+#d.table <- merge(d.table, d.kallisto, by.x="id", by.y="X")
+#colnames(d.table) <- c("id", "si_baseMean", "si_l2FC", "si_lfcSE", 
+#                    "si_stat", "si_pval", "si_padj",
+#                    "sa_baseMean", "sa_l2FC", "sa_lfcSE", 
+#                    "sa_stat", "sa_pval", "sa_padj",
+#                    "k_baseMean", "k_l2FC", "k_lfcSE", 
+#                    "k_stat", "k_pval", "k_padj")
+#write.csv(d.table, "table_deseq.csv", row.names=TRUE)
+
+count.data <- read.csv("table_counts.csv", header=TRUE)			#previously sikasa
+po.table <- read.csv("table_original.csv", header=TRUE)			#previously stsak
+d.table <- read.csv("table_deseq.csv", header=TRUE)			#previously stsak2
 
 ###################################################################################################
 
-# STEP A: Difference between methods (ST-HT comparison)
+# Analysis of the counts
 ###################################################################################################
-#Evaluating counts 
-sikasa$id <- NULL
-sikasa <- scale(sikasa)
-stsak$id <- NULL
-stsak <- scale(stsak)
-stsak2$id <- NULL
-stsak2 <- scale(stsak2)
+#boxplot
+count.ni <- count.data
+count.ni$id = NULL
+boxplot(count.ni, las=2)
+log_counts <- log(count.ni+1)
+boxplot(log_counts, las=2)
 
-###Evaluating the counts
-#Boxplot
-boxplot(sikasa, main = "Counts by sample")
-boxplot(sikasa, main = "Counts by sample", ylim = c(0,500), las=2)
-log_sikasa <- log(sikasa+1)
-boxplot(log_sikasa, main = "Log counts by sample", ylim = c(0,0.5), las=2)
-
-#Hiarchical clustering
-fit <- hclust(as.dist(1-cor(sikasa, method="pearson")), method="complete")
-plot(fit)
-fit2 <- hclust(as.dist(1-cor(sikasa, method="spearman")), method="complete")
-plot(fit2)
+#hierarchical clustering
+p.fit <- hclust(as.dist(1-cor(count.ni, method="pearson")), method="complete")
+plot(p.fit)
+s.fit <- hclust(as.dist(1-cor(count.ni, method="spearman")), method="complete")
+plot(s.fit)
 
 #PCA
-count.pca <- prcomp(t(sikasa), center = TRUE, scale. = TRUE)
+count.pca <- prcomp(t(count.ni), center = TRUE, scale. = TRUE)
 summary(count.pca)
 plot(count.pca, type = "l")
 biplot(count.pca, var.axes = FALSE)
 
 #Correlation matrix
-cor(sikasa)
-pairs(~log(si_ST1)+log(k_ST1)+log(sa_ST1), data=sikasa, main="Scatterplot matrix of ST1 samples")
-pairs(~log(si_ST1)+log(si_ST2)+log(si_ST3)+log(k_ST1)+log(k_ST2)+log(k_ST3)+log(sa_ST1)+log(sa_ST2)+log(sa_ST3), data=sikasa, main="Scatterplot matrix of ST samples")
-pairs(~log(si_HT1)+log(k_HT1)+log(sa_HT1), data=sikasa, main="Scatterplot matrix of HT1 samples")
-pairs(~log(si_HT1)+log(si_HT2)+log(si_HT3)+log(k_HT1)+log(k_HT2)+log(k_HT3)+log(sa_HT1)+log(sa_HT2)+log(sa_HT3), data=sikasa, main="Scatterplot matrix of HT samples")
+cor.count.ni <- cor(count.ni)
+write.csv(cor.count.ni, "correlation_counts.csv", row.names=TRUE)
+pairs(~log(si_ST1)+log(k_ST1)+log(sa_ST1), data=count.ni, main="Scatterplot matrix of log ST1 samples")
+pairs(~log(si_HT1)+log(k_HT1)+log(sa_HT1), data=count.ni, main="Scatterplot matrix of log HT1 samples")
 
-#Comparing fc vs b values
-fcb <- data.frame(stsak$si_fc, stsak$k_b, stsak$sa_l2FC)
-names(fcb) = c("si_fc", "k_b", "sa_fc")
-fcb$si_fc <- log2(fcb$si_fc)
-fcb$k_b <- 2^fcb$k_b
-pairs(~si_fc+k_b+sa_fc, fcb, main = "Scatterplot matrix fc v b values")
-sum(row.has.na <- apply(fcb, 1, function(x){any(is.na(x))}))  #checking amount of NA
-fcb.filtered <- fcb[!row.has.na,]
-cor.fcb <- cor(fcb.filtered)
+
+
+
+
+
+
+
+###HIER GEBLEVEN
+
+
+###################################################################################################
+
+# Evaluating the pvalues
+###################################################################################################
 
 #Evaluating pvalues
 pvaluesx <- data.frame(stsak$id, stsak$si_pval, stsak$sa_pvalue, stsak$k_pval)
