@@ -60,7 +60,7 @@ progs/stringtie/stringtie -e -B -p 8 -G Arab_zCHR.gtf -l BAY_HT -o o_stringtie2/
 progs/stringtie/stringtie -e -B -p 8 -G Arab_zCHR.gtf -l BAY_HT -o o_stringtie2/ballgown/1657_O/1657_O.gtf input/1657_O_sorted.bam
 
 #Extracting counts
-python prepDE.py -i prepDE_pathways.txt -g stringtie_gene_count_matrix.csv -t stringtie_transcript_count_matrix.csv
+python prepDE.py -i prepDE_pathways.txt -g stringtie_counts.csv 
 
 ###################################################################################################
 # Running Ballgown in R
