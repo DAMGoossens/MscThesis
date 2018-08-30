@@ -7,44 +7,24 @@
 #Creating an index
 progs/kallisto/kallisto index -i Ref_Kal.idx input/Arabidopsis_thaliana.TAIR10.cds.all.fa
 
-
 #ST
 progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_A -b 100 --single -l 180 -s 20 input/1657_A_run263.fastq.gz
 progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_B -b 100 --single -l 180 -s 20 input/1657_B_run263.fastq.gz
 progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_C -b 100 --single -l 180 -s 20 input/1657_C_merged.fastq.gz
-
-#LP
-progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_G -b 100 --single -l 180 -s 20 input/1657_G_run263.fastq.gz
-progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_H -b 100 --single -l 180 -s 20 input/1657_H_run263.fastq.gz
-progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_I -b 100 --single -l 180 -s 20 input/1657_I_merged.fastq.gz
 
 #HT
 progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_M -b 100 --single -l 180 -s 20 input/1657_M_merged.fastq.gz
 progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_N -b 100 --single -l 180 -s 20 input/1657_N_run265.fastq.gz
 progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_O -b 100 --single -l 180 -s 20 input/1657_O_run265.fastq.gz
 
-#HL
-progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_S -b 100 --single -l 180 -s 20 input/1657_S_run265.fastq.gz
-progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_T -b 100 --single -l 180 -s 20 input/1657_T_merged.fastq.gz
-progs/kallisto/kallisto quant -i Ref_Kal.idx -o o_kallisto/1657_U -b 100 --single -l 180 -s 20 input/1657_U_run265.fastq.gz
-
 ###################################################################################################
 # Getting counts in R
 ###################################################################################################
-source("https://bioconductor.org/biocLite.R")
-biocLite("tximport")
-biocLite("rhdf5")
-biocLite("AnnotationDbi")
-biocLite("arabidopsis.db0")
-biocLite("readr")
-biocLite("GenomicFeatures")
+rm(list=ls(all=TRUE))
 
+#source("https://bioconductor.org/biocLite.R")
+#biocLite("tximport")
 library(tximport)
-library(rhdf5)
-library(AnnotationDbi)
-library(arabidopsis.db0)
-library(GenomicFeatures)
-library(readr)
 
 setwd("/mnt/scratch/gooss032/")
 
@@ -52,7 +32,7 @@ dir <- "/mnt/scratch/gooss032/o_kallisto"
 list.files(dir)
 
 #preparing for reading in files
-samples <- read.table(file.path(dir, "run_info.txt"), header = TRUE)
+samples <- read.table(file.path("run_info.txt"), header = TRUE)
 samples
 
 files <- file.path(dir, samples$sample, "abundance.tsv")
@@ -60,31 +40,22 @@ names(files) <- samples$sample
 all(file.exists(files))
 
 #making an annotation object
-tx2gene <- read_csv("o_kallisto/gene_code_id.csv")
-txi <- tximport(files, type="kallisto", tx2gene = tx2gene)
+tx2gene <- read.csv("gene_code_id.csv")
+txi <- tximport(files, type="kallisto", tx2gene = tx2gene)            
 names(txi)
 head(txi$counts)
 
-#database <- makeTxDbFromGFF(file="Arab_zCHR.gtf")
-
-#getting transcript abundances instead of gene abundances, 
-#after which it can be summarized
-#txi.tx <- tximport(files, type = "kallisto", txOut = TRUE)
-#txi.sum <- summarizeToGene(txi.tx, tx2gene)
-#all.equal(txi$counts, txi.sum$counts)
-
 #write out gene abundances count table
-write.csv(txi,"kallisto_genes_results.csv",row.names=TRUE)
-write.csv(txi.tx,"kallisto_transcript_results.csv",row.names=TRUE)
+write.csv(txi,"kallisto_counts.csv",row.names=TRUE)
 
 ###################################################################################################
 # Running Sleuth in R
 ###################################################################################################
 #biocLite("devtools") 
+library(devtools)
 #biocLite("pachterlab/sleuth")
 
 #Calling libraries
-library(devtools)
 library(sleuth)
 
 #Reading in the data
@@ -95,14 +66,12 @@ kal_dirs <- sapply(sample_id, function(id) file.path(base_dir, "o_kallisto", id)
 kal_dirs
 s2c <- read.table("run_info.txt", header=TRUE, stringsAsFactors=FALSE)
 s2c <- dplyr::mutate(s2c, path = kal_dirs)
-s2c = s2c[grep("HT|ST",s2c$condition),] 
 s2c    						#Don't forget to check if everything corresponds correctly 				
 
 t2g = read.csv("gene_code_id.csv",header=TRUE,stringsAsFactors=FALSE)
 colnames(t2g)  = c("target_id","gene_id")
 
 #Constructing the sleuth object
-#transformation_function = function(x) log2(x + 0.5)
 so <- sleuth_prep(s2c, ~ condition, target_mapping = t2g, aggregation_column = 'gene_id')  #prepping the data (might take long)
 so <- sleuth_fit(so)                                    #fitting the model
 so <- sleuth_fit(so, ~1, 'reduced')                     #fitting the reduced model
@@ -113,13 +82,10 @@ so <- sleuth_fit(so, ~1, 'reduced')                     #fitting the reduced mod
 
 #Wald test
 #so <- sleuth_wt(so, 'conditionHT')
-#so <- sleuth_wt(so, 'conditionLP')
 so <- sleuth_wt(so, 'conditionST')
-#so <- sleuth_wt(so, 'conditionHL')
-#so <- sleuth_wt(so, 'conditionHT')
 
 #Creating a shiny webpage with all of the results
 sleuth_live(so) 
 
 results_table <- sleuth_results(so, 'conditionST', test_type = 'wt')
-write.csv(results_table, "kallisto_STHT_genes.csv", row.names=TRUE)
+write.csv(results_table, "kallisto_sleuth_stht.csv", row.names=TRUE)
