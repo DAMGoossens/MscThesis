@@ -26,52 +26,33 @@ progs/STAR-2.5.2b/bin/Linux_x86_64/STAR --genomeDir input --readFilesIn input/16
 ###################################################################################################
 rm(list=ls(all=TRUE))
 
-source("http://bioconductor.org/biocLite.R")
-biocLite("DESeq2")
+getwd()
+#setwd("/mnt/scratch/gooss032/o_STAR")
+
+#source("http://bioconductor.org/biocLite.R")
+#biocLite("DESeq2")
 library(DESeq2)
 
-count_data = read.csv("star_gene_count_matrix.csv", row.names=1,header=TRUE)
-tail(count_data)
-#count_data = count_data[-nrow(count_data),]                 #sloppy writing, needs fixing - only necessary for STAR data
-#count_data = count_data[-nrow(count_data),]
-#count_data = count_data[-nrow(count_data),]
-#count_data = count_data[-nrow(count_data),]
+count.data = read.csv("star_counts.csv", row.names=1,header=TRUE)
 
 #File statistics
-dim(count_data)
-colnames(count_data)
-summary(count_data)
+dim(count.data)
+summary(count.data)
 
 #Filtering
-mx = apply(count_data, 1, max )
+mx = apply(count.data, 1, max )
 length(mx)
-count_data = count_data[ mx > 10, ]
-dim(count_data)
+count.data = count.data[ mx > 10, ]
+dim(count.data)
 
 #Creating a DESeq2 data object
 condition = factor(c("ST", "ST", "ST", "HT", "HT", "HT"))
 condition
 col_data = DataFrame(condition)
-dds = DESeqDataSetFromMatrix(count_data, col_data, ~condition)
-
-dds = estimateSizeFactors(dds)      #calculating linear correciton factors
-sizeFactors(dds)
-
-#Clustering
-rld = rlog(dds)                      #transforming the counts
-plot(density(assay(rld)[,1]), main="log counts")
-
-dists = dist(t(assay(rld)))
-plot(hclust(dists))
-
-#Calculating and checking dispersions 
-dds = estimateDispersions(dds)
-plotDispEsts(dds)
+dds = DESeqDataSetFromMatrix(count.data, col_data, ~condition)
 
 #DE
 dds = nbinomWaldTest(dds)
 res = results(dds)
-head(res)
-#res$padj = ifelse(is.na(res$padj), 1, res$padj)      #setting NA's to 1
 
-write.csv(res, "star_STHT.csv", row.names=TRUE)
+write.csv(res, "star_deseq_stht.csv", row.names=TRUE)
