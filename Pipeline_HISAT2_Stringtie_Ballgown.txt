@@ -3,44 +3,15 @@
 #Note: this script requires an index to be used for the HISAT2 step and several documents describing the samples.
 
 ###################################################################################################
-# Prepping the data on Unix
-###################################################################################################
-
-#merging data
-cat 1657_C_run263_GCCGCATG_L007_R1_001_f.fastq.gz 1657_C_run269_GCCGCATG_L006_R1_001_f.fastq.gz > 1657_C_merged.fastq.gz
-cat 1657_I_run263_TTCTCCGA_L004_R1_001_f.fastq.gz 1657_I_run269_TTCTCCGA_L006_R1_001_f.fastq.gz > 1657_I_merged.fastq.gz
-cat 1657_M_run265_CGCAGTAC_L005_R1_001_f.fastq.gz 1657_M_run271_CGCAGTAC_L004_R1_001_f.fastq.gz > 1657_M_merged.fastq.gz
-cat 1657_T_run265_CTCAATGA_L005_R1_001_f.fastq.gz 1657_T_run_CTCAATGA_L005_R1_002_f.fastq.gz > 1657_T_merged.fastq.gz
-
-#trimming of datajava -jar progs/trimmomatic/trimmomatic-0.33.jar SE -threads 8 input/1657_A.fastq.gz input/1657_A.fastq.gz ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
-java -jar progs/trimmomatic/trimmomatic-0.33.jar SE -threads 8 input/1657_B.fastq.gz input/1657_B.fastq.gz ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
-java -jar progs/trimmomatic/trimmomatic-0.33.jar SE -threads 8 input/1657_G.fastq.gz input/1657_G.fastq.gz ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
-java -jar progs/trimmomatic/trimmomatic-0.33.jar SE -threads 8 input/1657_H.fastq.gz input/1657_H.fastq.gz ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
-java -jar progs/trimmomatic/trimmomatic-0.33.jar SE -threads 8 input/1657_N.fastq.gz input/1657_N.fastq.gz ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
-java -jar progs/trimmomatic/trimmomatic-0.33.jar SE -threads 8 input/1657_O.fastq.gz input/1657_O.fastq.gz ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
-java -jar progs/trimmomatic/trimmomatic-0.33.jar SE -threads 8 input/1657_S.fastq.gz input/1657_S.fastq.gz ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
-java -jar progs/trimmomatic/trimmomatic-0.33.jar SE -threads 8 input/1657_U.fastq.gz input/1657_U.fastq.gz ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
-java -jar progs/trimmomatic/trimmomatic-0.33.jar SE -threads 8 input/1657_C_merged.fastq.gz input/1657_C_merged.fastq.gz ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
-java -jar progs/trimmomatic/trimmomatic-0.33.jar SE -threads 8 input/1657_I_merged.fastq.gz input/1657_I_merged.fastq.gz ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
-java -jar progs/trimmomatic/trimmomatic-0.33.jar SE -threads 8 input/1657_M_merged.fastq.gz input/1657_M_merged.fastq.gz ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
-java -jar progs/trimmomatic/trimmomatic-0.33.jar SE -threads 8 input/1657_T_merged.fastq.gz input/1657_T_merged.fastq.gz ILLUMINACLIP:TruSeq3-SE:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
-
-###################################################################################################
 # Assembly with Hisat2 on Unix
 ###################################################################################################
 
-progs/hisat2/hisat2 -p 8 -q -x TAIR10 -U input/1657_A.fastq.gz -S input/1657_A.sam
-progs/hisat2/hisat2 -p 8 -q -x TAIR10 -U input/1657_B.fastq.gz -S input/1657_B.sam
-progs/hisat2/hisat2 -p 8 -q -x TAIR10 -U input/1657_C_merged.fastq.gz -S input/1657_C.sam
-progs/hisat2/hisat2 -p 8 -q -x TAIR10 -U input/1657_G.fastq.gz -S input/1657_G.sam
-progs/hisat2/hisat2 -p 8 -q -x TAIR10 -U input/1657_H.fastq.gz -S input/1657_H.sam
-progs/hisat2/hisat2 -p 8 -q -x TAIR10 -U input/1657_I_merged.fastq.gz -S input/1657_I.sam
-progs/hisat2/hisat2 -p 8 -q -x TAIR10 -U input/1657_M_merged.fastq.gz -S input/1657_M.sam
-progs/hisat2/hisat2 -p 8 -q -x TAIR10 -U input/1657_N.fastq.gz -S input/1657_N.sam
-progs/hisat2/hisat2 -p 8 -q -x TAIR10 -U input/1657_O.fastq.gz -S input/1657_O.sam
-progs/hisat2/hisat2 -p 8 -q -x TAIR10 -U input/1657_S.fastq.gz -S input/1657_S.sam
-progs/hisat2/hisat2 -p 8 -q -x TAIR10 -U input/1657_T_merged.fastq.gz -S input/1657_T.sam
-progs/hisat2/hisat2 -p 8 -q -x TAIR10 -U input/1657_U.fastq.gz -S input/1657_U.sam
+progs/hisat2/hisat2 -p 8 -q TAIR10 -U /mnt/scratch2/nijve002/At_WL/1657_A.fastq.gz -S input/1657_A.sam
+progs/hisat2/hisat2 -p 8 -q TAIR10 -U /mnt/scratch2/nijve002/At_WL/1657_B.fastq.gz -S input/1657_B.sam
+progs/hisat2/hisat2 -p 8 -q TAIR10 -U /mnt/scratch2/nijve002/At_WL/1657_C.fastq.gz -S input/1657_C.sam
+progs/hisat2/hisat2 -p 8 -q TAIR10 -U /mnt/scratch2/nijve002/At_WL/1657_M.fastq.gz -S input/1657_M.sam
+progs/hisat2/hisat2 -p 8 -q TAIR10 -U /mnt/scratch2/nijve002/At_WL/1657_N.fastq.gz -S input/1657_N.sam
+progs/hisat2/hisat2 -p 8 -q TAIR10 -U /mnt/scratch2/nijve002/At_WL/1657_O.fastq.gz -S input/1657_O.sam
 
 ###################################################################################################
 # Running samtools on Unix
@@ -49,94 +20,60 @@ progs/hisat2/hisat2 -p 8 -q -x TAIR10 -U input/1657_U.fastq.gz -S input/1657_U.s
 progs/samtools/samtools view -b -@ 8 -o input/1657_A.bam input/1657_A.sam
 progs/samtools/samtools view -b -@ 8 -o input/1657_B.bam input/1657_B.sam
 progs/samtools/samtools view -b -@ 8 -o input/1657_C.bam input/1657_C.sam
-progs/samtools/samtools view -b -@ 8 -o input/1657_G.bam input/1657_G.sam
-progs/samtools/samtools view -b -@ 8 -o input/1657_H.bam input/1657_H.sam
-progs/samtools/samtools view -b -@ 8 -o input/1657_I.bam input/1657_I.sam
 progs/samtools/samtools view -b -@ 8 -o input/1657_M.bam input/1657_M.sam
 progs/samtools/samtools view -b -@ 8 -o input/1657_N.bam input/1657_N.sam
 progs/samtools/samtools view -b -@ 8 -o input/1657_O.bam input/1657_O.sam
-progs/samtools/samtools view -b -@ 8 -o input/1657_S.bam input/1657_S.sam
-progs/samtools/samtools view -b -@ 8 -o input/1657_T.bam input/1657_T.sam
-progs/samtools/samtools view -b -@ 8 -o input/1657_U.bam input/1657_U.sam
 
 #sorting bam files
 progs/samtools/samtools sort -@ 8 input/1657_A.bam -o input/1657_A_sorted.bam
 progs/samtools/samtools sort -@ 8 input/1657_B.bam -o input/1657_B_sorted.bam
 progs/samtools/samtools sort -@ 8 input/1657_C.bam -o input/1657_C_sorted.bam
-progs/samtools/samtools sort -@ 8 input/1657_G.bam -o input/1657_G_sorted.bam
-progs/samtools/samtools sort -@ 8 input/1657_H.bam -o input/1657_H_sorted.bam
-progs/samtools/samtools sort -@ 8 input/1657_I.bam -o input/1657_I_sorted.bam
 progs/samtools/samtools sort -@ 8 input/1657_M.bam -o input/1657_M_sorted.bam
 progs/samtools/samtools sort -@ 8 input/1657_N.bam -o input/1657_N_sorted.bam
 progs/samtools/samtools sort -@ 8 input/1657_O.bam -o input/1657_O_sorted.bam
-progs/samtools/samtools sort -@ 8 input/1657_S.bam -o input/1657_S_sorted.bam
-progs/samtools/samtools sort -@ 8 input/1657_T.bam -o input/1657_T_sorted.bam
-progs/samtools/samtools sort -@ 8 input/1657_U.bam -o input/1657_U_sorted.bam
 
 #indexing bam files
 progs/samtools/samtools index -b input/1657_A_sorted.bam
 progs/samtools/samtools index -b input/1657_B_sorted.bam
 progs/samtools/samtools index -b input/1657_C_sorted.bam
-progs/samtools/samtools index -b input/1657_G_sorted.bam
-progs/samtools/samtools index -b input/1657_H_sorted.bam
-progs/samtools/samtools index -b input/1657_I_sorted.bam
 progs/samtools/samtools index -b input/1657_M_sorted.bam
 progs/samtools/samtools index -b input/1657_N_sorted.bam
 progs/samtools/samtools index -b input/1657_O_sorted.bam
-progs/samtools/samtools index -b input/1657_S_sorted.bam
-progs/samtools/samtools index -b input/1657_T_sorted.bam
-progs/samtools/samtools index -b input/1657_U_sorted.bam
+
+progs/samtools/samtools flagstat input/1657_A_sorted.bam
+progs/samtools/samtools flagstat input/1657_B_sorted.bam
+progs/samtools/samtools flagstat input/1657_C_sorted.bam
+progs/samtools/samtools flagstat input/1657_M_sorted.bam
+progs/samtools/samtools flagstat input/1657_N_sorted.bam
+progs/samtools/samtools flagstat input/1657_O_sorted.bam
 
 ###################################################################################################
 # Running stringtie on Unix
 ###################################################################################################
 #Running stringtie
-progs/stringtie/stringtie input/1657_A_sorted.bam -G Araport11_GFF3_genes_transposons.201606.gtf -l BAY_ST -o o_stringtie/1657_A.gtf -p 8 -A -C -e -b o_stringtie/ballgown/1657_A
-progs/stringtie/stringtie input/1657_B_sorted.bam -G Araport11_GFF3_genes_transposons.201606.gtf -l BAY_ST -o o_stringtie/1657_B.gtf -p 8 -A -C -e -b o_stringtie/ballgown/1657_B
-progs/stringtie/stringtie input/1657_C_sorted.bam -G Araport11_GFF3_genes_transposons.201606.gtf -l BAY_ST -o o_stringtie/1657_C.gtf -p 8 -A -C -e -b o_stringtie/ballgown/1657_C
-progs/stringtie/stringtie input/1657_G_sorted.bam -G Araport11_GFF3_genes_transposons.201606.gtf -l BAY_LP -o o_stringtie/1657_G.gtf -p 8 -A -C -e -b o_stringtie/ballgown/1657_G
-progs/stringtie/stringtie input/1657_H_sorted.bam -G Araport11_GFF3_genes_transposons.201606.gtf -l BAY_LP -o o_stringtie/1657_H.gtf -p 8 -A -C -e -b o_stringtie/ballgown/1657_H
-progs/stringtie/stringtie input/1657_I_sorted.bam -G Araport11_GFF3_genes_transposons.201606.gtf -l BAY_LP -o o_stringtie/1657_I.gtf -p 8 -A -C -e -b o_stringtie/ballgown/1657_I
-progs/stringtie/stringtie input/1657_M_sorted.bam -G Araport11_GFF3_genes_transposons.201606.gtf -l BAY_HT -o o_stringtie/1657_M.gtf -p 8 -A -C -e -b o_stringtie/ballgown/1657_M
-progs/stringtie/stringtie input/1657_N_sorted.bam -G Araport11_GFF3_genes_transposons.201606.gtf -l BAY_HT -o o_stringtie/1657_N.gtf -p 8 -A -C -e -b o_stringtie/ballgown/1657_N
-progs/stringtie/stringtie input/1657_O_sorted.bam -G Araport11_GFF3_genes_transposons.201606.gtf -l BAY_HT -o o_stringtie/1657_O.gtf -p 8 -A -C -e -b o_stringtie/ballgown/1657_O
-progs/stringtie/stringtie input/1657_S_sorted.bam -G Araport11_GFF3_genes_transposons.201606.gtf -l BAY_HL -o o_stringtie/1657_S.gtf -p 8 -A -C -e -b o_stringtie/ballgown/1657_S
-progs/stringtie/stringtie input/1657_T_sorted.bam -G Araport11_GFF3_genes_transposons.201606.gtf -l BAY_HL -o o_stringtie/1657_T.gtf -p 8 -A -C -e -b o_stringtie/ballgown/1657_T
-progs/stringtie/stringtie input/1657_U_sorted.bam -G Araport11_GFF3_genes_transposons.201606.gtf -l BAY_HL -o o_stringtie/1657_U.gtf -p 8 -A -C -e -b o_stringtie/ballgown/1657_U
 
-#Merge all the transcripts from the different samples
-progs/stringtie/stringtie --merge -p 8 -G Araport11_GFF3_genes_transposons.201606.gtf -o o_stringtie/stringtie_merged.gtf o_stringtie/mergelist.txt
+progs/stringtie/stringtie -e -B -p 8 -G Arab_zCHR.gtf -l BAY_ST -o o_stringtie2/ballgown/1657_A/1657_A.gtf input/1657_A_sorted.bam
+progs/stringtie/stringtie -e -B -p 8 -G Arab_zCHR.gtf -l BAY_ST -o o_stringtie2/ballgown/1657_B/1657_B.gtf input/1657_B_sorted.bam
+progs/stringtie/stringtie -e -B -p 8 -G Arab_zCHR.gtf -l BAY_ST -o o_stringtie2/ballgown/1657_C/1657_C.gtf input/1657_C_sorted.bam
+progs/stringtie/stringtie -e -B -p 8 -G Arab_zCHR.gtf -l BAY_HT -o o_stringtie2/ballgown/1657_M/1657_M.gtf input/1657_M_sorted.bam
+progs/stringtie/stringtie -e -B -p 8 -G Arab_zCHR.gtf -l BAY_HT -o o_stringtie2/ballgown/1657_N/1657_N.gtf input/1657_N_sorted.bam
+progs/stringtie/stringtie -e -B -p 8 -G Arab_zCHR.gtf -l BAY_HT -o o_stringtie2/ballgown/1657_O/1657_O.gtf input/1657_O_sorted.bam
 
-#Compare the assembled transcripts to known transcripts (in gffcmompare dir)
-gffcompare/gffcompare -r Araport11_GFF3_genes_transposons.201606.gtf -G -o o_stringtie/merged o_stringtie/stringtie_merged.gtf
-
-#Estimate the abundances of the assembled transcripts
-progs/stringtie/stringtie -e -B -p 8 -G o_stringtie/stringtie_merged.gtf -l BAY_ST -o o_stringtie/ballgown/1657_A/1657_A.gtf input/1657_A_sorted.bam
-progs/stringtie/stringtie -e -B -p 8 -G o_stringtie/stringtie_merged.gtf -l BAY_ST -o o_stringtie/ballgown/1657_B/1657_B.gtf input/1657_B_sorted.bam
-progs/stringtie/stringtie -e -B -p 8 -G o_stringtie/stringtie_merged.gtf -l BAY_ST -o o_stringtie/ballgown/1657_C/1657_C.gtf input/1657_C_sorted.bam
-progs/stringtie/stringtie -e -B -p 8 -G o_stringtie/stringtie_merged.gtf -l BAY_LP -o o_stringtie/ballgown/1657_G/1657_G.gtf input/1657_G_sorted.bam
-progs/stringtie/stringtie -e -B -p 8 -G o_stringtie/stringtie_merged.gtf -l BAY_LP -o o_stringtie/ballgown/1657_H/1657_H.gtf input/1657_H_sorted.bam
-progs/stringtie/stringtie -e -B -p 8 -G o_stringtie/stringtie_merged.gtf -l BAY_LP -o o_stringtie/ballgown/1657_I/1657_I.gtf input/1657_I_sorted.bam
-progs/stringtie/stringtie -e -B -p 8 -G o_stringtie/stringtie_merged.gtf -l BAY_HT -o o_stringtie/ballgown/1657_M/1657_M.gtf input/1657_M_sorted.bam
-progs/stringtie/stringtie -e -B -p 8 -G o_stringtie/stringtie_merged.gtf -l BAY_HT -o o_stringtie/ballgown/1657_N/1657_N.gtf input/1657_N_sorted.bam
-progs/stringtie/stringtie -e -B -p 8 -G o_stringtie/stringtie_merged.gtf -l BAY_HT -o o_stringtie/ballgown/1657_O/1657_O.gtf input/1657_O_sorted.bam
-progs/stringtie/stringtie -e -B -p 8 -G o_stringtie/stringtie_merged.gtf -l BAY_HL -o o_stringtie/ballgown/1657_S/1657_S.gtf input/1657_S_sorted.bam
-progs/stringtie/stringtie -e -B -p 8 -G o_stringtie/stringtie_merged.gtf -l BAY_HL -o o_stringtie/ballgown/1657_T/1657_T.gtf input/1657_T_sorted.bam
-progs/stringtie/stringtie -e -B -p 8 -G o_stringtie/stringtie_merged.gtf -l BAY_HL -o o_stringtie/ballgown/1657_U/1657_U.gtf input/1657_U_sorted.bam
-
-#Estracting counts
+#Extracting counts
 python prepDE.py -i prepDE_pathways.txt -g stringtie_gene_count_matrix.csv -t stringtie_transcript_count_matrix.csv
 
 ###################################################################################################
 # Running Ballgown in R
 ###################################################################################################
+rm(list=ls(all=TRUE))
+
 #Prepare and load libraries
-source("http://www.bioconductor.org/biocLite.R")
-biocLite(c("ballgown", "genefilter","dplyr","devtools"))
-biocLite(c("ggplot2", "cowplot"))
-install.packages("ggfortify")
-library(devtools) 
-devtools::install_github('alyssafrazee/RSkittleBrewer', force = TRUE)
+#source("http://www.bioconductor.org/biocLite.R")
+#biocLite(c("ballgown", "genefilter","dplyr","devtools"))
+#biocLite(c("ggplot2", "cowplot"))
+#install.packages("ggfortify")
+#library(devtools) 
+#devtools::install_github('alyssafrazee/RSkittleBrewer', force = TRUE)
 library(ballgown)
 library(RSkittleBrewer) 
 library(genefilter)
@@ -146,7 +83,7 @@ library(ggplot2)
 library(cowplot)
 
 getwd()
-setwd("/mnt/scratch/gooss032/o_stringtie")
+#setwd("/mnt/scratch/gooss032/o_stringtie")
 
 #Import data
 pheno_data = read.csv("ballgown/samplesR.csv", header=TRUE)
@@ -157,15 +94,9 @@ genes.fpkm = gexpr(bg)
 trans.fpkm = texpr(bg)
 
 #testing statistical significance
-results_transcripts = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE)     #only applicable for comparing two groups
 results_genes = stattest(bg, feature="gene", meas="FPKM", covariate="condition", getFC=TRUE)
-results_transcripts = data.frame(geneNames=ballgown:geneNames(bg),geneIDs=ballgown:geneIDs(bg),results_transcripts)   
-
-#Sort on p- and q- value and print the list to files
-results_transcripts = arrange(results_transcripts,pval)
 results_genes = arrange(results_genes,pval)
-write.csv(results_transcripts,"stringtie_transcript_results.csv",row.names=FALSE)         #alternatively names for stht comparison: stringtie_transcript_stht.csv
-write.csv(results_genes,"stringtie_genes_results.csv",row.names=FALSE)           #alternatively names for stht comparison: stringtie_genes_stht.csv
+write.csv(results_genes,"stringtie_ballgown_stht.csv",row.names=FALSE)     
 
 #Testing different libadj
 libadj.default = stattest(bg, feature="transcript", meas="FPKM", covariate="condition", getFC=TRUE)
@@ -187,7 +118,9 @@ libadj.quantile.n0 = stattest(bg, feature="transcript", meas="FPKM", covariate="
 
 lib_data <- data.frame(libadj.default$pval, libadj.false$pval, libadj.sum$pval, libadj.quantile$pval, libadj.sum.n0$pval, libadj.quantile.n0$pval)
 colnames(lib_data) = c("default", "false", "sum", "quantile", "sumn0", "quantilen0")
+lib_data <- na.omit(lib_data)
 
-lib_data2 <- lib_data[complete.cases(lib_data),]
-pairs(~default+false+sum+quantile+sumn0+quantilen0, data=lib_data2)
+pairs(~default+false+sum+quantile+sumn0+quantilen0, data=lib_data)
 cor(lib_data)
+write.csv(lib_data, "lib_data.csv", row.names=FALSE)
+write.csv(cor(lib_data), "cor_lib_data.csv", row.names=FALSE)
