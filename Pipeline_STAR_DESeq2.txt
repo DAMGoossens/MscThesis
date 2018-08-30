@@ -52,6 +52,8 @@ col_data = DataFrame(condition)
 dds = DESeqDataSetFromMatrix(count.data, col_data, ~condition)
 
 #DE
+dds = estimateSizeFactors(dds)
+dds = estimateDispersions(dds)
 dds = nbinomWaldTest(dds)
 res = results(dds)
 
