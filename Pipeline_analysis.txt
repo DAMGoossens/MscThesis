@@ -13,9 +13,11 @@ setwd("/mnt/scratch/gooss032/o_analysis")
 #biocLite("ggplot2")
 #install.packages("tidyverse")
 #install.packages("scales")
+#install.packages("VennDiagram")
 library(ggplot2)
 library(tidyverse)
 library(scales)
+library(VennDiagram)
 
 #reading in all count results
 #c.stringtie <- read.csv("stringtie_counts.csv", header=TRUE)
@@ -102,86 +104,57 @@ write.csv(cor.count.ni, "correlation_counts.csv", row.names=TRUE)
 pairs(~log(si_ST1)+log(k_ST1)+log(sa_ST1), data=count.ni, main="Scatterplot matrix of log ST1 samples")
 pairs(~log(si_HT1)+log(k_HT1)+log(sa_HT1), data=count.ni, main="Scatterplot matrix of log HT1 samples")
 
-
-
-
-
-
-
-
-###HIER GEBLEVEN
-
-
 ###################################################################################################
 
 # Evaluating the pvalues
 ###################################################################################################
+#Pvalues original pipelines
+po.pvalues <- data.frame(po.table$si_pval, po.table$sa_pval, po.table$k_pval)
+colnames(po.pvalues) = c("si_pval", "sa_pval", "k_pval")
+pon.pvalues <- na.omit(po.pvalues)
 
-#Evaluating pvalues
-pvaluesx <- data.frame(stsak$id, stsak$si_pval, stsak$sa_pvalue, stsak$k_pval)
-write.csv (pvaluesx, "pvaluesx.csv", row.names=TRUE)
-pvaluesx$stsak.id = NULL
-names(pvaluesx) = c("si_pval", "sa_pval", "k_pval")
-
-sum(row.has.na <- apply(pvaluesx, 1, function(x){any(is.na(x))}))  #checking amount of NA
-pvalues.filtered <- pvaluesx[!row.has.na,]
-
-pvaluesx <-pvaluesx[complete.cases(pvaluesx),]
-
-
-cor_pvaluesx <- cor(pvalues.filtered)
-pairs(~si_pval+sa_pval+k_pval, pvalues.filtered, main="Scatterplot matrix of P values")
-
-pvaluesx2 <- data.frame(stsak2$id, stsak2$si_pval, stsak2$sa_pval, stsak2$k_pval)
-pvaluesx2$stsak2.id = NULL
-names(pvaluesx2) = c("si_pval", "sa_pval", "k_pval")
-
-sum(row.has.na <- apply(pvaluesx2, 1, function(x){any(is.na(x))}))  #checking amount of NA
-pvalues2.filtered <- pvaluesx2[!row.has.na,]
-
-cor_pvalues2 <- cor(pvalues2.filtered)
-
-pairs(~si_pval+sa_pval+k_pval, pvaluesx2, main="Scatterplot matrix of P values")
-
-graph <- pvaluesx %>% 
+cor(pon.pvalues)
+pairs(~si_pval+sa_pval+k_pval, pon.pvalues)
+pon.graph <- pon.pvalues %>% 
             gather(category, value)
-
-ggplot(graph, aes(x = value, fill = category)) +
+ggplot(pon.graph, aes(x = value, fill = category)) +
   geom_histogram(binwidth = 0.1, color = "black", position="stack")
 
-#STAR: ST vs HT
-pairs(~sa_ST1+sa_ST2+sa_ST3+sa_HT1+sa_HT2+sa_HT3, data=sikasa, main="Scatterplot matrix of STAR: ST vs HT")
-pairs(~log(sa_ST1)+log(sa_ST2)+log(sa_ST3)+log(sa_HT1)+log(sa_HT2)+log(sa_HT3), data=sikasa, main="Scatterplot matrix of STAR: ST vs HT - log values")
+#Pvalues DESeq pipeline
+d.pvalues <- data.frame(d.table$si_pval, d.table$sa_pval, d.table$k_pval)
+colnames(d.pvalues) = c("si_pval", "sa_pval", "k_pval")
+dn.pvalues <- na.omit(d.pvalues)
+
+cor(dn.pvalues)
+pairs(~si_pval+sa_pval+k_pval, dn.pvalues)
+dn.graph <- dn.pvalues %>% 
+            gather(category, value)
+ggplot(dn.graph, aes(x = value, fill = category)) +
+  geom_histogram(binwidth = 0.1, color = "black", position="stack")
 
 ###################################################################################################
 
-# STEP B: Difference between methods (ST-HT comparison)
+# Difference between methods
 ###################################################################################################
-#Venn diagram
-si <- stringtie
-si <- data.frame(si$X, si$pval)
-si <- si[order(si$pval, decreasing=FALSE), ]
+#Preparing the data
+po.stringtie <- read.csv("stringtie_ballgown_stht.csv", header=TRUE)
+po.stringtie$feature = NULL
+po.star <- read.csv("star_deseq_stht.csv", header=TRUE)
+po.kallisto <- read.csv("kallisto_sleuth_stht.csv", header=TRUE)
+
+si <- data.frame(po.stringtie$id, po.stringtie$pval)
 colnames(si) = c("id", "pval")
-si100 <- head(si,100)
-si250 <- head(si,250)
-si500 <- head(si,500)
+si <- si[order(si$pval, decreasing=FALSE), ]
 
-sa <- star
-sa <- data.frame(sa$id, sa$res.pvalue)
+sa <- data.frame(po.star$X, po.star$pvalue)
 colnames(sa) = c("id", "pval")
 sa <- sa[order(sa$pval, decreasing=FALSE), ]
-sa100 <- head(sa,100)
-sa250 <- head(sa,250)
-sa500 <- head(sa,500)
 
-k <- kallisto
-k <- data.frame(k$gene_id, k$pval)
+k <- data.frame(po.kallisto$target_id, po.kallisto$pval)
 colnames(k) = c("id", "pval")
 k <- k[order(k$pval, decreasing=FALSE), ]
-k100 <- head(k,100)
-k250 <- head(k,250)
 
-#Slopegraph kallisto vs star
+#Slopegraph Kallisto vs. STAR
 slope.ksa <- merge(k, sa, by.x="id", by.y="id")
 colnames(slope.ksa) = c("id", "kallisto", "star")
 slope.ksa <- head(slope.ksa, 100)
@@ -199,7 +172,7 @@ p<-p + theme(panel.border=element_blank())
 p<-p + xlab("Slopegraph Kallisto vs STAR") + ylab("")
 p
 
-#Slopegraph stringtie vs star
+#Slopegraph Stringtie vs STAR
 slope.sisa <- merge(si, sa, by.x="id", by.y="id")
 colnames(slope.sisa) = c("id", "stringtie", "star")
 slope.sisa <- head(slope.sisa, 100)
@@ -217,7 +190,7 @@ q<-q + theme(panel.border=element_blank())
 q<-q + xlab("Slopegraph Stringtie vs STAR") + ylab("")
 q
 
-#Slopegraph stringtie vs kallisto
+#Slopegraph Stringtie vs Kallisto
 slope.sik <- merge(si, k, by.x="id", by.y="id")
 colnames(slope.sik) = c("id", "stringtie", "kallisto")
 slope.sik <- head(slope.sik, 100)
@@ -235,3 +208,27 @@ r<-r + theme(panel.border=element_blank())
 r<-r + xlab("Slopegraph Stringtie vs Kallisto") + ylab("")
 r
 
+#Venndiagram of significant genes
+significant <- read.csv("venn_significant.csv" , header=TRUE)
+
+si.significant <- data.frame(significant$stringtie)
+sa.significant <- data.frame(significant$star)
+k.significant <- data.frame(significant$kallisto)
+
+temp123 <- merge(si.significant, k.significant, by.x="id", by.y="id")
+area123 <- dim(merge(temp123, sa.significant, by.x="id", by.y="id"))[1]
+area12 <- dim(merge(si.significant, sa.significant, by.x="id", by.y="id"))[1] - area123   #stringtie & star
+area23 <- dim(merge(sa.significant, k.significant, by.x="id", by.y="id"))[1] - area123    #star & kallisto
+area13 <- dim(merge(si.significant, k.significant, by.x="id", by.y="id"))[1] - area123    #stringtie & kallisto
+area1 <- dim(si.significant)[1] - (area12+area13+area123)				  #stringtie
+area2 <- dim(sa.significant)[1] - (area12+area23+area123)				  #star
+area3 <- dim(k.significant)[1] - (area23+area13+area123)				  #kallisto
+
+###################################################################################################
+
+# Two examples of genes
+###################################################################################################
+
+examples <- read.csv("count_examples", header=TRUE)
+plot(examples$X, examples$AT1G20630, main = "AT1G20630", las=2)
+plot(examples$X, examples$AT5G03180, main = "AT5G03180", las=2)
